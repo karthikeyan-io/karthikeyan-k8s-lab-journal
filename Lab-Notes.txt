@@ -1,0 +1,4 @@
+---Lab-1--
+1.Create POD
+kubectl describe pods redis | grep -i -B1 -A9 "Container ID"
+kubectl run redis --image=redis -o yaml --dry-run=client > create_redispod.yaml
