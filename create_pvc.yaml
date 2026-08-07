@@ -1,0 +1,28 @@
+#Create PVC  Let us claim some of that storage for our application. Create a Persistent Volume Claim with the given specification.
+Persistent Volume Claim: claim-log-1
+Storage Request: 50Mi
+Access Modes: ReadWriteOnce
+
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: local-pvc
+spec:
+  storageClassName: local-path
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+
+#Output
+controlplane ~ ➜  k get pvc
+NAME        STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+local-pvc   Pending                                      local-path     <unset>                 7s
+
+
+The Storage Class called local-path makes use of VolumeBindingMode set to WaitForFirstConsumer. 
+This will delay the binding and provisioning of a PersistentVolume until a Pod using the PersistentVolumeClaim is created
+
+ 
