@@ -1,6 +1,6 @@
 # 🧪 Karthikeyan's Kubernetes Lab Journal
 
-> **CKA Preparation Journal** — Daily hands-on kubectl practice, YAML labs, troubleshooting scenarios and cluster architecture notes by a 19-year Telecom/IMS/NFV engineer transitioning into Cloud & AI engineering in Tokyo, Japan.
+> **CKA Preparation Journal** — Daily hands-on kubectl practice, YAML labs, troubleshooting scenarios and cluster architecture notes by a 21-year Telecom/IMS/NFV engineer transitioning into Cloud & AI engineering in Tokyo, Japan.
 
 ---
 
@@ -11,7 +11,7 @@
 | **Name** | Karthikeyan Ramamurthy |
 | **Role** | Associate Consultant — Telecom Cloud & NFV @ HCL Tech Japan Ltd |
 | **Location** | Tokyo, Japan 🇯🇵 |
-| **Background** | 19+ years in Telecom · IMS · NFV · Nokia CloudBand · VoLTE · 5G Core |
+| **Background** | 21+ years in Telecom · IMS · NFV · Nokia CloudBand · VoLTE · 5G Core |
 | **Target** | AWS Japan Solutions Architect (Principal level) · 2026 |
 | **LinkedIn** | [linkedin.com/in/karthikeyanramamurthy](https://www.linkedin.com/in/karthikeyanramamurthy/) |
 
@@ -175,7 +175,7 @@ Studying for CKA in Tokyo while:
 - Attending TCJ Japanese language school 3 evenings/week (Tue/Wed/Thu 7–9PM)
 - Swimming 3×/week (Mon/Fri/Sat)
 - Studying Japanese on the commute daily (Anki + JapanesePod101)
-- Targeting JLPT N5 (December 2026) and NAT-TEST (August 2026)
+- Targeting JLPT N4 (December 2026) and NAT-TEST (August 2026)
 
 **Study time breakdown per day:**
 - 🚃 Commute (both ways): 1 hr — theory, notes review, short video clips
@@ -202,10 +202,10 @@ Studying for CKA in Tokyo while:
 ```
 2026
  Jul ──── CKA prep (this repo) ──────────────────────────────────┐
- Aug ──── NAT-TEST ✅                                             │
+ Aug ──── NAT-TEST N5 ✅                                         │
  Sep ──── 🎯 CKA EXAM ──────────────────────────────────────────►│
  Oct ──── 🎯 AWS SAA EXAM ─────────────────────────────────────► │
- Dec ──── JLPT N5                                                 │
+ Dec ──── JLPT N4                                                 │
 2027                                                              │
  Mid ──── AWS ML Specialty ──────────────────────────────────────┤
  Jul ──── JLPT N4                                                 │
@@ -239,12 +239,12 @@ This repository is open for reference and learning. All lab notes, YAML files, a
 
 **Built in Tokyo 🗼 | Studying Kubernetes ☸️ | Learning Japanese 🇯🇵 | Targeting AWS Japan 🟠**
 
-*"19 years in telecom taught me that infrastructure reliability is life-critical. That same discipline now drives how I learn cloud."*
+*"21 years in telecom taught me that infrastructure reliability is life-critical. That same discipline now drives how I learn cloud."*
 
 ![Tokyo](https://img.shields.io/badge/Based_in-Tokyo_Japan-red?style=flat-square)
 ![CKA](https://img.shields.io/badge/CKA-In_Progress-blue?style=flat-square&logo=kubernetes)
 ![AWS](https://img.shields.io/badge/AWS_SAA-Planned_Oct_2026-orange?style=flat-square&logo=amazon-aws)
-![JLPT](https://img.shields.io/badge/JLPT-N5_Dec_2026-green?style=flat-square)
+![JLPT](https://img.shields.io/badge/JLPT-N4_Dec_2026-green?style=flat-square)
 ![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=flat-square&logo=linkedin)
 
 </div>
