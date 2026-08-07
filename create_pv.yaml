@@ -1,0 +1,20 @@
+#1 Create PV Description Volume Name: pv-log , Storage: 100Mi, Access Modes: ReadWriteMany, Host Path: /pv/log, Reclaim Policy: Retain
+# Create pv.yaml
+ 
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-log
+spec:
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /pv/log
+
+# Output
+controlplane ~ ➜  k get pv
+NAME     CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   VOLUMEATTRIBUTESCLASS   REASON   AGE
+pv-log   100Mi      RWX            Retain           Available                          <unset>                          43s
