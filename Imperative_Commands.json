@@ -1,0 +1,83 @@
+#1. Deploy a pod named nginx-pod using the nginx:alpine image.
+Use imperative commands only.
+
+controlplane ~ ✖ kubectl run nginx-pod --image=nginx:alpine
+pod/nginx-pod created
+
+controlplane ~ ➜  kubectl get pods
+NAME        READY   STATUS    RESTARTS   AGE
+nginx-pod   1/1     Running   0          29s
+
+controlplane ~ ➜  
+
+kubectl run custom-nginx --image=nginx --port=8080
+
+#2.Deploy a redis pod using the redis:alpine image with the labels tier=db.
+controlplane ~ ➜  kubectl run redis --image=redis:alpine --labels="tier=db"
+pod/redis created
+
+controlplane ~ ➜  kubectl get pods
+NAME        READY   STATUS              RESTARTS   AGE
+nginx-pod   1/1     Running             0          3m8s
+redis       0/1     ContainerCreating   0          4s
+
+#3.Create a service named redis-service to expose the existing redis pod within the cluster on port 6379.
+kubectl expose pod redis --port=6379 --name=redis-service --type=ClusterIP
+
+#4.Create a deployment named webapp using the image kodekloud/webapp-color with 3 replicas.
+controlplane ~ ➜  kubectl create deployment webapp --image=kodekloud/webapp-color --replicas=3
+deployment.apps/webapp created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get deployments.apps
+NAME     READY   UP-TO-DATE   AVAILABLE   AGE
+webapp   3/3     3            3           7s
+#5. namespace
+kubectl create namespace dev-ns
+
+#6.Create a new deployment called redis-deploy in the dev-ns namespace with the redis image. It should have 2 replicas.
+
+controlplane ~ ➜  kubectl get rs -n dev-ns
+NAME                      DESIRED   CURRENT   READY   AGE
+redis-deploy-66f68997fd   2         2         2       37s
+
+controlplane ~ ➜  kubectl get deployments.apps -n dev-ns
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+redis-deploy   2/2     2            2           57s
+
+controlplane ~ ➜  kubectl get pods -n dev-ns
+NAME                            READY   STATUS    RESTARTS   AGE
+redis-deploy-66f68997fd-m2lxn   1/1     Running   0          84s
+redis-deploy-66f68997fd-sv8q5   1/1     Running   0          84s
+
+controlplane ~ ➜  
+
+#7 Create a pod named httpd using the image httpd:alpine in the default namespace.
+Then, create a service of type ClusterIP with the same name (httpd) that exposes the pod on port 80. POD and Service together
+
+controlplane ~ ✖ kubectl run httpd --image=httpd:alpine --port=80 --expose
+service/httpd created
+pod/httpd created
+
+
+#8. What is the SHORTNAME for horizontalpodautoscalers?
+hpa
+
+=============================================================
+
+controlplane ~ ➜  kubectl run -h
+Create and run a particular image in a pod.
+
+controlplane ~ ➜  kubectl expose -h
+Expose a resource as a new Kubernetes service.
+
+ Possible resources include (case insensitive):
+
+ pod (po), service (svc), replicationcontroller (rc), deployment (deploy), replicaset (rs)
+
+controlplane ~ ➜  kubectl create -h
+Create a resource from a file or from stdin.
+
+#kubectl explain pod.spec.containers
+#kubectl explain pod / -h
