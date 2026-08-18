@@ -1,0 +1,46 @@
+controlplane ~ ✖ kubectl api-resources | grep -i deployment
+deployments                         deploy       apps/v1                             true         Deployment
+
+controlplane ~ ➜  kubectl explain deployment | grep -i version
+VERSION:    v1
+  apiVersion    <string>
+    APIVersion defines the versioned schema of this representation of an object.
+
+controlplane ~ ➜
+
+controlplane ~ ➜  cat deployment-definition-1.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      name: busybox-pod
+  template:
+    metadata:
+      labels:
+        name: busybox-pod
+    spec:
+      containers:
+      - name: busybox-container
+        image: busybox
+        command:
+        - sh
+        - "-c"
+        - echo Hello Kubernetes! && sleep 3600
+
+controlplane ~ ➜  kubectl create deployment httpd-frontend --image=httpd:2.4-alpine --replicas=3
+deployment.apps/httpd-frontend created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get deployments.apps
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+deployment-1          2/2     2            2           4m9s
+frontend-deployment   0/4     4            0           24m
+httpd-frontend        3/3     3            3           7s
+
+controlplane ~ ➜  
