@@ -1,0 +1,36 @@
+We have deployed a number of PODs. They are labelled with tier, env and bu. How many PODs exist in the dev environment (env)?
+
+
+controlplane ~ ✖ kubectl get pods --selector env=dev
+NAME          READY   STATUS    RESTARTS   AGE
+app-1-bvnw4   1/1     Running   0          4m2s
+app-1-clg7j   1/1     Running   0          4m2s
+app-1-ktvsn   1/1     Running   0          4m2s
+db-1-5d2ll    1/1     Running   0          4m2s
+db-1-m4n6k    1/1     Running   0          4m2s
+db-1-t64vd    1/1     Running   0          4m2s
+db-1-t8rpd    1/1     Running   0          4m2s
+
+controlplane ~ ➜  
+
+
+
+controlplane ~ ➜  kubectl get all --selector env=prod
+NAME              READY   STATUS    RESTARTS   AGE
+pod/app-1-zzxdf   1/1     Running   0          8m15s
+pod/app-2-hp87l   1/1     Running   0          8m15s
+pod/auth          1/1     Running   0          8m15s
+pod/db-2-db7sv    1/1     Running   0          8m15s
+
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/app-1   ClusterIP   10.43.236.142   <none>        3306/TCP   8m15s
+
+NAME                    DESIRED   CURRENT   READY   AGE
+replicaset.apps/app-2   1         1         1       8m15s
+replicaset.apps/db-2    1         1         1       8m15s
+
+controlplane ~ ➜  
+
+controlplane ~ ✖ kubectl get pods --selector bu=finance,env=prod,tier=frontend
+NAME          READY   STATUS    RESTARTS   AGE
+app-1-zzxdf   1/1     Running   0          10m
