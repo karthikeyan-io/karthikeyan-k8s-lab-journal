@@ -1,0 +1,133 @@
+controlplane ~ ➜  cat nginx.yaml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  -  image: nginx
+     name: nginx
+
+
+controlplane ~ ➜  kubectl apply -f nginx.yaml
+pod/nginx created
+
+controlplane ~ ➜  cat nginx.yaml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  -  image: nginx
+     name: nginx
+
+
+controlplane ~ ➜  kubectl get pods
+NAME    READY   STATUS    RESTARTS   AGE
+nginx   0/1     Pending   0          12s
+
+controlplane ~ ➜  kubectl get pod -o wide
+NAME    READY   STATUS    RESTARTS   AGE   IP       NODE     NOMINATED NODE   READINESS GATES
+nginx   0/1     Pending   0          18s   <none>   <none>   <none>           <none>
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl describe pod nginx
+Name:             nginx
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             <none>
+Labels:           <none>
+Annotations:      <none>
+Status:           Pending
+IP:              
+IPs:              <none>
+Containers:
+  nginx:
+    Image:        nginx
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-sdvlh (ro)
+Volumes:
+  kube-api-access-sdvlh:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:                      <none>
+
+controlplane ~ ➜  
+
+#Schedule a Node name manually
+controlplane ~ ➜  cat nginx.yaml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  nodeName: node01
+  containers:
+  -  image: nginx
+     name: nginx
+ 
+
+controlplane ~ ➜  kubectl delete pod nginx
+pod "nginx" deleted from default namespace
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get pod
+No resources found in default namespace.
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl apply -f nginx.yaml
+pod/nginx created
+
+controlplane ~ ➜  kubectl get pod
+NAME    READY   STATUS              RESTARTS   AGE
+nginx   0/1     ContainerCreating   0          3s
+
+controlplane ~ ➜  kubectl get pod -o wide
+NAME    READY   STATUS    RESTARTS   AGE   IP           NODE     NOMINATED NODE   READINESS GATES
+nginx   1/1     Running   0          6s    172.17.1.2   node01   <none>           <none>
+
+controlplane ~ ➜  
+
+
+# Change the node to controlplane and schedule a POD.
+
+controlplane ~ ➜  kubectl get nodes
+NAME           STATUS   ROLES           AGE   VERSION
+controlplane   Ready    control-plane   23m   v1.35.0
+node01         Ready    <none>          23m   v1.35.0
+
+controlplane ~ ➜  cat nginx.yaml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  nodeName: controlplane
+  containers:
+  -  image: nginx
+     name: nginx
+ 
+controlplane ~ ➜  kubectl get pods -o wide
+NAME    READY   STATUS    RESTARTS   AGE     IP           NODE           NOMINATED NODE   READINESS GATES
+nginx   1/1     Running   0          2m32s   172.17.0.4   controlplane   <none>           <none>
+
+controlplane ~ ➜  
