@@ -1,0 +1,117 @@
+#1. How to check any taints on the node/worker
+
+controlplane ~ ✖ kubectl describe node node01 | grep -i taints
+Taints:             <none>
+
+Create a taint on node01 with key of spray, value of mortein and effect of NoSchedule
+
+#2 Create taint on node node01 with key as below
+
+controlplane ~ ✖ kubectl taint nodes node01 spray=mortein:NoSchedule
+node/node01 tainted
+
+controlplane ~ ➜  
+
+
+
+
+#3. Create a new pod with the nginx image and pod name as mosquito.
+controlplane ~ ➜  kubectl run mosquito --image=nginx
+pod/mosquito created
+
+ontrolplane ~ ➜  kubectl get pod
+NAME       READY   STATUS    RESTARTS   AGE
+mosquito   0/1     Pending   0          19s
+
+controlplane ~ ✖ kubectl describe pod mosquito
+Name:             mosquito
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             <none>
+Labels:           run=mosquito
+Annotations:      <none>
+Status:           Pending
+IP:              
+IPs:              <none>
+Containers:
+  mosquito:
+    Image:        nginx
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-dx2mz (ro)
+Conditions:
+  Type           Status
+  PodScheduled   False
+Volumes:
+  kube-api-access-dx2mz:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason            Age   From               Message
+  ----     ------            ----  ----               -------
+  Warning  FailedScheduling  47s   default-scheduler  0/2 nodes are available: 2 node(s) had untolerated taint(s). no new claims to deallocate, preemption: 0/2 nodes are available: 2 Preemption is not helpful for scheduling.
+
+controlplane ~ ➜  kubectl get pod -o wide
+NAME       READY   STATUS    RESTARTS   AGE   IP       NODE     NOMINATED NODE   READINESS GATES
+mosquito   0/1     Pending   0          71s   <none>   <none>   <none>           <none>
+
+POD mosquito  cannot tolerate taint Martein on the nodes
+
+controlplane ~ ➜  kubectl describe node node01 | grep -i taints
+Taints:             spray=mortein:NoSchedule
+
+#4 Create another pod named bee with the nginx image, which has a toleration set to the taint mortein.
+Image name: nginx |Key: spray | Value: mortein | Effect: NoSchedule | Status: Running
+
+controlplane ~ ➜  cat bee.yaml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bee
+spec:
+  containers:
+  - image: nginx
+    name: bee
+  tolerations:
+  - key: spray
+    value: mortein
+    effect: NoSchedule
+    operator: Equal
+
+controlplane ~ ➜  
+
+Observe that the bee pod has been scheduled on node node01 due to the toleration that has been configured for the pod.
+
+controlplane ~ ➜  kubectl get pods -o wide
+NAME       READY   STATUS    RESTARTS   AGE     IP           NODE     NOMINATED NODE   READINESS GATES
+bee        1/1     Running   0          9s      172.17.1.2   node01   <none>           <none>
+mosquito   0/1     Pending   0          6m27s   <none>       <none>   <none>           <none>
+
+#5 Remove the taint on controlplane, which currently has the taint effect of NoSchedule.
+
+
+
+controlplane ~ ➜  kubectl taint nodes controlplane node-role.kubernetes.io/control-plane:NoSchedule-
+node/controlplane untainted
+
+
+
+After remove the taint, pod mosquito hosted in controlplane
+
+controlplane ~ ➜  kubectl get pods -o wide
+NAME       READY   STATUS    RESTARTS   AGE   IP           NODE           NOMINATED NODE   READINESS GATES
+bee        1/1     Running   0          7m    172.17.1.2   node01         <none>           <none>
+mosquito   1/1     Running   0          13m   172.17.0.4   controlplane   <none>           <none>
+
+controlplane ~ ➜  
