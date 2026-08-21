@@ -1,0 +1,122 @@
+#1. Check Labels on the node node01
+
+
+
+#2 Apply a label color=blue to node node01
+
+controlplane ~ ✖ kubectl label node node01 colour=blue
+node/node01 labeled
+
+
+
+
+
+#3. Create a new deployment named blue with the nginx image and 3 replicas.
+
+controlplane ~ ➜  kubectl create deployment blue --image=nginx --replicas=3
+deployment.apps/blue created
+
+controlplane ~ ➜  kubectl get deployments.apps
+NAME   READY   UP-TO-DATE   AVAILABLE   AGE
+blue   3/3     3            3           2m34s
+
+controlplane ~ ➜  kubectl get pods -o wide
+NAME                   READY   STATUS    RESTARTS   AGE   IP           NODE           NOMINATED NODE   READINESS GATES
+blue-8cbbcf895-55l94   1/1     Running   0          2s    172.17.1.6   node01         <none>           <none>
+blue-8cbbcf895-7fvvt   1/1     Running   0          2s    172.17.0.6   controlplane   <none>           <none>
+blue-8cbbcf895-rwg5b   1/1     Running   0          2s    172.17.1.7   node01         <none>           <none>
+
+controlplane ~ ➜  
+controlplane ~ ➜  kubectl describe deployments.apps blue
+Name:                   blue
+Namespace:              default
+CreationTimestamp:      Tue, 18 Aug 2026 08:15:53 +0000
+Labels:                 app=blue
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=blue
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=blue
+  Containers:
+   nginx:
+    Image:         nginx
+    Port:          <none>
+    Host Port:     <none>
+    Environment:   <none>
+    Mounts:        <none>
+  Volumes:         <none>
+  Node-Selectors:  <none>
+  Tolerations:     <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   blue-8cbbcf895 (3/3 replicas created)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  4m31s  deployment-controller  Scaled up replica set blue-8cbbcf895 from 0 to 3
+
+controlplane ~ ➜
+
+
+#4 Set Node Affinity to the blue deployment to place the pods on node01 only. Ensure that node01 has the label color=blue.
+Requirements:  requiredDuringSchedulingIgnoredDuringExecution node affinity |Key: color | Value: blue
+If the label is not already set, apply it to node01 before updating the deployment.
+
+Copy from k8s documentation for affinity, add under image
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: color
+            operator: In
+            values:
+            - blue
+controlplane ~ ➜  kubectl describe deployments.apps blue
+Name:                   blue
+Namespace:              default
+CreationTimestamp:      Tue, 18 Aug 2026 08:15:53 +0000
+Labels:                 app=blue
+Annotations:            deployment.kubernetes.io/revision: 2
+Selector:               app=blue
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=blue
+  Containers:
+   nginx:
+    Image:         nginx
+#5 Create a new deployment named red with the nginx image and 2 replicas, and ensure it gets placed on the controlplane node only.
+controlplane ~ ➜  kubectl get pods -o wide
+NAME                    READY   STATUS    RESTARTS   AGE     IP            NODE     NOMINATED NODE   READINESS GATES
+blue-6d68b79d57-cqjdn   1/1     Running   0          2m38s   172.17.1.8    node01   <none>           <none>
+blue-6d68b79d57-tvcm2   1/1     Running   0          2m36s   172.17.1.9    node01   <none>           <none>
+blue-6d68b79d57-vzdf6   1/1     Running   0          2m34s   172.17.1.10   node01   <none>           <none>
+
+
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: Exists
+
+controlplane ~ ➜  kubectl get pods -o wide
+NAME                    READY   STATUS    RESTARTS   AGE   IP            NODE           NOMINATED NODE   READINESS GATES
+blue-6d68b79d57-cqjdn   1/1     Running   0          10m   172.17.1.8    node01         <none>           <none>
+blue-6d68b79d57-tvcm2   1/1     Running   0          10m   172.17.1.9    node01         <none>           <none>
+blue-6d68b79d57-vzdf6   1/1     Running   0          10m   172.17.1.10   node01         <none>           <none>
+red-679dd7f44c-hvf27    1/1     Running   0          82s   172.17.0.9    controlplane   <none>           <none>
+red-679dd7f44c-lbw6x    1/1     Running   0          83s   172.17.0.8    controlplane   <none>           <none>
+
+controlplane ~ ➜  
