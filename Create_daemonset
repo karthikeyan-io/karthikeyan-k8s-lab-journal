@@ -1,0 +1,206 @@
+DaemonSet like replicasets. Each node the replica PODs will create unique on each node/clusters
+
+Eg: kube-proxy, calico , 
+
+controlplane ~ ➜  kubectl get daemonsets.apps 
+No resources found in default namespace.
+
+controlplane ~ ➜  kubectl get daemonsets.apps -A
+NAMESPACE      NAME              DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+kube-flannel   kube-flannel-ds   1         1         1       1            1           <none>                   9m33s
+kube-system    kube-proxy        1         1         1       1            1           kubernetes.io/os=linux   9m34s
+
+controlplane ~ ➜  kubectl get daemonsets.apps -n kube-system 
+NAME         DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+kube-proxy   1         1         1       1            1           kubernetes.io/os=linux   10m
+
+controlplane ~ ➜  kubectl get all --all-namespaces
+NAMESPACE      NAME                                       READY   STATUS    RESTARTS   AGE
+kube-flannel   pod/kube-flannel-ds-vxzd9                  1/1     Running   0          11m
+kube-system    pod/coredns-6f6c7df987-85fn8               1/1     Running   0          11m
+kube-system    pod/coredns-6f6c7df987-f96bq               1/1     Running   0          11m
+kube-system    pod/etcd-controlplane                      1/1     Running   0          11m
+kube-system    pod/kube-apiserver-controlplane            1/1     Running   0          11m
+kube-system    pod/kube-controller-manager-controlplane   1/1     Running   0          11m
+kube-system    pod/kube-proxy-bvdfv                       1/1     Running   0          11m
+kube-system    pod/kube-scheduler-controlplane            1/1     Running   0          11m
+
+NAMESPACE     NAME                 TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)                  AGE
+default       service/kubernetes   ClusterIP   172.20.0.1    <none>        443/TCP                  11m
+kube-system   service/kube-dns     ClusterIP   172.20.0.10   <none>        53/UDP,53/TCP,9153/TCP   11m
+
+NAMESPACE      NAME                             DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+kube-flannel   daemonset.apps/kube-flannel-ds   1         1         1       1            1           <none>                   11m
+kube-system    daemonset.apps/kube-proxy        1         1         1       1            1           kubernetes.io/os=linux   11m
+
+NAMESPACE     NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+kube-system   deployment.apps/coredns   2/2     2            2           11m
+
+NAMESPACE     NAME                                 DESIRED   CURRENT   READY   AGE
+kube-system   replicaset.apps/coredns-6f6c7df987   2         2         2       11m
+
+controlplane ~ ✖ kubectl describe daemonsets.apps kube-flannel-ds -n kube-flannel
+Name:           kube-flannel-ds
+Namespace:      kube-flannel
+Selector:       app=flannel,k8s-app=flannel
+Node-Selector:  <none>
+Labels:         app=flannel
+                k8s-app=flannel
+                tier=node
+Annotations:    deprecated.daemonset.template.generation: 1
+Desired Number of Nodes Scheduled: 1
+Current Number of Nodes Scheduled: 1
+Number of Nodes Scheduled with Up-to-date Pods: 1
+Number of Nodes Scheduled with Available Pods: 1
+Number of Nodes Misscheduled: 0
+Pods Status:  1 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:           app=flannel
+                    k8s-app=flannel
+                    tier=node
+  Service Account:  flannel
+  Init Containers:
+   install-cni-plugin:
+    Image:      docker.io/flannel/flannel-cni-plugin:v1.2.0
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      cp
+    Args:
+      -f
+      /flannel
+      /opt/cni/bin/flannel
+    Environment:  <none>
+    Mounts:
+      /opt/cni/bin from cni-plugin (rw)
+   install-cni:
+    Image:      docker.io/flannel/flannel:v0.23.0
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      cp
+    Args:
+      -f
+      /etc/kube-flannel/cni-conf.json
+      /etc/cni/net.d/10-flannel.conflist
+    Environment:  <none>
+    Mounts:
+      /etc/cni/net.d from cni (rw)
+      /etc/kube-flannel/ from flannel-cfg (rw)
+  Containers:
+   kube-flannel:
+    Image:      docker.io/flannel/flannel:v0.23.0
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      /opt/bin/flanneld
+    Args:
+      --ip-masq
+      --kube-subnet-mgr
+      --iface=eth0
+    Requests:
+      cpu:     100m
+      memory:  50Mi
+    Environment:
+      POD_NAME:            (v1:metadata.name)
+      POD_NAMESPACE:       (v1:metadata.namespace)
+      EVENT_QUEUE_DEPTH:  5000
+    Mounts:
+      /etc/kube-flannel/ from flannel-cfg (rw)
+      /run/flannel from run (rw)
+      /run/xtables.lock from xtables-lock (rw)
+  Volumes:
+   run:
+    Type:          HostPath (bare host directory volume)
+    Path:          /run/flannel
+    HostPathType:  
+   cni-plugin:
+    Type:          HostPath (bare host directory volume)
+    Path:          /opt/cni/bin
+    HostPathType:  
+   cni:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/cni/net.d
+    HostPathType:  
+   flannel-cfg:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      kube-flannel-cfg
+    Optional:  false
+   xtables-lock:
+    Type:               HostPath (bare host directory volume)
+    Path:               /run/xtables.lock
+    HostPathType:       FileOrCreate
+  Priority Class Name:  system-node-critical
+  Node-Selectors:       <none>
+  Tolerations:          :NoSchedule op=Exists
+Events:
+  Type    Reason            Age   From                  Message
+  ----    ------            ----  ----                  -------
+  Normal  SuccessfulCreate  13m   daemonset-controller  Created pod: kube-flannel-ds-vxzd9
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl create deployment elasticsearch -n kube-system --image=registry.k8s.io/fluentd-elasticsearch:1.20 --dry-run=client -o yaml > fluentd.yaml
+
+controlplane ~ ➜  vi fluentd.yaml 
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl create -f fluentd.yaml 
+daemonset.apps/elasticsearch created
+
+controlplane ~ ✖ kubectl get all
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   172.20.0.1   <none>        443/TCP   19m
+
+controlplane ~ ➜  kubectl get all --all-namespaces
+NAMESPACE      NAME                                       READY   STATUS    RESTARTS   AGE
+kube-flannel   pod/kube-flannel-ds-vxzd9                  1/1     Running   0          19m
+kube-system    pod/coredns-6f6c7df987-85fn8               1/1     Running   0          19m
+kube-system    pod/coredns-6f6c7df987-f96bq               1/1     Running   0          19m
+kube-system    pod/elasticsearch-n2cbd                    1/1     Running   0          44s
+kube-system    pod/etcd-controlplane                      1/1     Running   0          19m
+kube-system    pod/kube-apiserver-controlplane            1/1     Running   0          19m
+kube-system    pod/kube-controller-manager-controlplane   1/1     Running   0          19m
+kube-system    pod/kube-proxy-bvdfv                       1/1     Running   0          19m
+kube-system    pod/kube-scheduler-controlplane            1/1     Running   0          19m
+
+NAMESPACE     NAME                 TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)                  AGE
+default       service/kubernetes   ClusterIP   172.20.0.1    <none>        443/TCP                  19m
+kube-system   service/kube-dns     ClusterIP   172.20.0.10   <none>        53/UDP,53/TCP,9153/TCP   19m
+
+NAMESPACE      NAME                             DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+kube-flannel   daemonset.apps/kube-flannel-ds   1         1         1       1            1           <none>                   19m
+kube-system    daemonset.apps/elasticsearch     1         1         1       1            1           <none>                   44s
+kube-system    daemonset.apps/kube-proxy        1         1         1       1            1           kubernetes.io/os=linux   19m
+
+NAMESPACE     NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+kube-system   deployment.apps/coredns   2/2     2            2           19m
+
+NAMESPACE     NAME                                 DESIRED   CURRENT   READY   AGE
+kube-system   replicaset.apps/coredns-6f6c7df987   2         2         2       19m
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  cat fluentd.yaml 
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app: elasticsearch
+  name: elasticsearch
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      containers:
+      - image: registry.k8s.io/fluentd-elasticsearch:1.20
+        name: fluentd-elasticsearch
