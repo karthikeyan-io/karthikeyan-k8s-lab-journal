@@ -1,0 +1,266 @@
+Priority Classes
+==================
+
+Assigning the workload to priority class defined pods
+
+Value max 1B to -2B value. 1B to 2B value defined as high priority critical job pods., in this case if no resource available low priotiy job pods will be deleted.
+
+Otherwise critical priority job pod will be pending state and in queue for scheduling.
+
+
+root@controlplane ~ ➜  kubectl get priorityclasses
+NAME                      VALUE        GLOBAL-DEFAULT   AGE   PREEMPTIONPOLICY
+system-cluster-critical   2000000000   false            11m   PreemptLowerPriority
+system-node-critical      2000001000   false            11m   PreemptLowerPriority
+
+root@controlplane ~ ➜  
+
+root@controlplane ~ ➜  kubectl describe priorityclasses system-node-critical
+Name:              system-node-critical
+Value:             2000001000
+GlobalDefault:     false
+PreemptionPolicy:  PreemptLowerPriority
+Description:       Used for system critical pods that must not be moved from their current node.
+Annotations:       <none>
+Events:            <none>
+
+root@controlplane ~ ✖ vi high-priority.yaml
+
+root@controlplane ~ ➜  
+
+root@controlplane ~ ➜  
+
+root@controlplane ~ ➜  kubectl apply -f high-priority.yaml 
+priorityclass.scheduling.k8s.io/high-priority-nonpreempting created
+
+root@controlplane ~ ➜  cat high-priority.yaml
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: high-priority-nonpreempting
+value: 1000000
+preemptionPolicy: PreemptLowerPriority
+globalDefault: false
+
+root@controlplane ~ ➜  
+
+root@controlplane ~ ➜  kubectl get priorityclasses high-priority
+Error from server (NotFound): priorityclasses.scheduling.k8s.io "high-priority" not found
+
+root@controlplane ~ ✖ kubectl get priorityclasses
+NAME                          VALUE        GLOBAL-DEFAULT   AGE   PREEMPTIONPOLICY
+high-priority-nonpreempting   1000000      false            19s   PreemptLowerPriority
+system-cluster-critical       2000000000   false            23m   PreemptLowerPriority
+system-node-critical          2000001000   false            23m   PreemptLowerPriority
+
+root@controlplane ~ ➜  
+
+root@controlplane ~ ➜  vi high-priority.yaml
+
+root@controlplane ~ ➜  cat high-priority.yaml
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: high-priority
+value: 1000000
+preemptionPolicy: PreemptLowerPriority
+globalDefault: false
+
+root@controlplane ~ ➜  kubectl apply -f high-priority.yaml 
+priorityclass.scheduling.k8s.io/high-priority created
+
+root@controlplane ~ ➜  kubectl get priorityclasses
+NAME                          VALUE        GLOBAL-DEFAULT   AGE   PREEMPTIONPOLICY
+high-priority                 1000000      false            9s    PreemptLowerPriority
+high-priority-nonpreempting   1000000      false            66s   PreemptLowerPriority
+system-cluster-critical       2000000000   false            24m   PreemptLowerPriority
+system-node-critical          2000001000   false            24m   PreemptLowerPriority
+
+root@controlplane ~ ➜  kubectl delete priorityclasses high-priority-nonpreempting
+priorityclass.scheduling.k8s.io "high-priority-nonpreempting" deleted
+
+root@controlplane ~ ➜  kubectl get priorityclasses
+NAME                      VALUE        GLOBAL-DEFAULT   AGE   PREEMPTIONPOLICY
+high-priority             1000000      false            29s   PreemptLowerPriority
+system-cluster-critical   2000000000   false            24m   PreemptLowerPriority
+system-node-critical      2000001000   false            24m   PreemptLowerPriority
+
+root@controlplane ~ ➜  kubectl edit priorityclasses high-priority 
+priorityclass.scheduling.k8s.io/high-priority edited
+
+root@controlplane ~ ➜  
+
+root@controlplane ~ ➜  kubectl describe priorityclasses high-priority 
+Name:              high-priority
+Value:             1000000
+GlobalDefault:     false
+PreemptionPolicy:  PreemptLowerPriority
+Description:       
+Annotations:       kubectl.kubernetes.io/last-applied-configuration={"apiVersion":"scheduling.k8s.io/v1","globalDefault":false,"kind":"PriorityClass","metadata":{"annotations":{},"name":"high-priority"},"preemptionPolicy":"PreemptLowerPriority","value":100000}
+
+Events:  <none>
+
+root@controlplane ~ ➜  kubectl edit priorityclasses high-priority 
+Edit cancelled, no changes made.
+
+root@controlplane ~ ➜  
+
+root@controlplane ~ ➜  
+
+root@controlplane ~ ➜  kubectl delete priorityclasses.scheduling.k8s.io high-priority
+priorityclass.scheduling.k8s.io "high-priority" deleted
+
+root@controlplane ~ ➜  vi  high-priority.yaml 
+
+root@controlplane ~ ➜  
+
+root@controlplane ~ ➜  
+
+root@controlplane ~ ➜  kubectl apply -f high-priority.yaml 
+priorityclass.scheduling.k8s.io/high-priority created
+
+root@controlplane ~ ➜  
+
+root@controlplane ~ ➜  cp high-priority.yaml low-prio.yaml
+
+root@controlplane ~ ➜  vi low-prio.yaml 
+
+root@controlplane ~ ➜  kubectl apply -f low-prio.yaml 
+priorityclass.scheduling.k8s.io/low-priority created
+
+root@controlplane ~ ➜  kubectl run low-prio-pod --image=nginx --dry-run=client -o yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: low-prio-pod
+  name: low-prio-pod
+spec:
+  containers:
+  - image: nginx
+    name: low-prio-pod
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+root@controlplane ~ ➜  vi low-pod.yaml
+
+root@controlplane ~ ➜  
+
+root@controlplane ~ ➜  kubectl apply -f low-pod.yaml 
+pod/low-prio-pod created
+
+root@controlplane ~ ➜  cat low-pod.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: low-prio-pod
+  name: low-prio-pod
+spec:
+  containers:
+  - image: nginx
+    name: low-prio-pod
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+  priorityClassName: low-priority
+
+root@controlplane ~ ➜  cp low-pod.yaml  high-pod.yaml
+
+root@controlplane ~ ➜  vi high-pod.yaml 
+
+root@controlplane ~ ➜  
+
+root@controlplane ~ ➜  
+
+root@controlplane ~ ➜  kubectl apply -f high-pod.yaml 
+pod/high-prio-pod created
+
+root@controlplane ~ ➜  cat high-pod.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: high-prio-pod
+  name: high-prio-pod
+spec:
+  containers:
+  - image: nginx
+    name: high-prio-pod
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+  priorityClassName: high-priority
+
+root@controlplane ~ ➜  
+
+root@controlplane ~ ➜  kubectl get pods -o custom-columns="NAME:.metadata.name,PRIORITY:.spec.priorityClassName"
+NAME            PRIORITY
+high-prio-pod   high-priority
+low-prio-pod    low-priority
+
+root@controlplane ~ ➜  kubectl get pods
+NAME            READY   STATUS    RESTARTS   AGE
+critical-app    0/1     Pending   0          16s
+high-prio-pod   1/1     Running   0          50s
+low-app         1/1     Running   0          16s
+low-prio-pod    1/1     Running   0          2m45s
+
+root@controlplane ~ ➜  kubectl describe pod critical-app | grep -i priority
+Priority:         0
+
+root@controlplane ~ ➜  kubectl describe pod  | grep -i priority
+Priority:         0
+Priority:             100000
+Priority Class Name:  high-priority
+Priority:             1000
+Priority Class Name:  low-priority
+Priority:             1000
+Priority Class Name:  low-priority
+
+root@controlplane ~ ➜  kubectl describe pod critical-app | grep -i -A3 Events
+Events:
+  Type     Reason            Age    From               Message
+  ----     ------            ----   ----               -------
+  Warning  FailedScheduling  3m45s  default-scheduler  0/1 nodes are available: 1 Insufficient cpu, 1 Insufficient memory. no new claims to deallocate, preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
+
+root@controlplane ~ ✦2 ➜  kubectl get pod critical-app -o yaml > crit.pod.yaml
+
+root@controlplane ~ ✦2 ➜  vi crit.pod.yaml 
+
+root@controlplane ~ ✦2 ➜  
+
+root@controlplane ~ ✦2 ➜  kubectl get pods
+NAME            READY   STATUS    RESTARTS   AGE
+critical-app    0/1     Pending   0          7m36s
+high-prio-pod   1/1     Running   0          8m10s
+low-app         1/1     Running   0          7m36s
+low-prio-pod    1/1     Running   0          10m
+
+root@controlplane ~ ✦2 ➜  
+
+root@controlplane ~ ✦2 ➜  kubectl delete pod critical-app 
+pod "critical-app" deleted from default namespace
+
+root@controlplane ~ ✦2 ➜  kubectl get pods
+NAME            READY   STATUS    RESTARTS   AGE
+high-prio-pod   1/1     Running   0          8m23s
+low-app         1/1     Running   0          7m49s
+low-prio-pod    1/1     Running   0          10m
+
+root@controlplane ~ ✦2 ➜  kubectl apply -f crit.pod.yaml 
+pod/critical-app created
+
+root@controlplane ~ ✦2 ➜  kubectl get pods
+NAME            READY   STATUS    RESTARTS   AGE
+critical-app    1/1     Running   0          3s
+high-prio-pod   1/1     Running   0          8m47s
+low-prio-pod    1/1     Running   0          10m
+
+root@controlplane ~ ✦2 ➜  kubectl describe pod  | grep -i priority
+Priority:             100000
+Priority Class Name:  high-priority
+Priority:             100000
+Priority Class Name:  high-priority
+Priority:             1000
+Priority Class Name:  low-priority
