@@ -1,0 +1,506 @@
+controlplane ~ ➜  kubectl get pods
+No resources found in default namespace.
+
+controlplane ~ ➜  kubectl get ns
+NAME              STATUS   AGE
+default           Active   18m
+kube-flannel      Active   18m
+kube-node-lease   Active   18m
+kube-public       Active   18m
+kube-system       Active   18m
+
+controlplane ~ ➜  kubectl get pods -n kube-system
+NAME                                   READY   STATUS    RESTARTS   AGE
+coredns-6f6c7df987-mnbq8               1/1     Running   0          18m
+coredns-6f6c7df987-vf8f7               1/1     Running   0          18m
+etcd-controlplane                      1/1     Running   0          18m
+kube-apiserver-controlplane            1/1     Running   0          18m
+kube-controller-manager-controlplane   1/1     Running   0          18m
+kube-proxy-pxqf4                       1/1     Running   0          18m
+kube-scheduler-controlplane            1/1     Running   0          18m
+
+controlplane ~ ➜  kubectl describe pod kube-scheduler-controlplane -n kube-system
+Name:                 kube-scheduler-controlplane
+Namespace:            kube-system
+Priority:             2000001000
+Priority Class Name:  system-node-critical
+Node:                 controlplane/10.244.23.140
+Start Time:           Thu, 03 Sep 2026 13:39:30 +0000
+Labels:               component=kube-scheduler
+                      tier=control-plane
+Annotations:          kubernetes.io/config.hash: 4f45952084b9f8aac04db13d5315645d
+                      kubernetes.io/config.mirror: 4f45952084b9f8aac04db13d5315645d
+                      kubernetes.io/config.seen: 2026-09-03T13:39:30.556506199Z
+                      kubernetes.io/config.source: file
+Status:               Running
+SeccompProfile:       RuntimeDefault
+IP:                   10.244.23.140
+IPs:
+  IP:           10.244.23.140
+Controlled By:  Node/controlplane
+Containers:
+  kube-scheduler:
+    Container ID:  containerd://261b136afbe1b492e063edc878470124902cdf463f8d08f7262ca5e8f11519e8
+    Image:         registry.k8s.io/kube-scheduler:v1.35.0
+    Image ID:      registry.k8s.io/kube-scheduler@sha256:0ab622491a82532e01876d55e365c08c5bac01bcd5444a8ed58c1127ab47819f
+    Port:          10259/TCP (probe-port)
+    Host Port:     10259/TCP (probe-port)
+    Command:
+      kube-scheduler
+      --authentication-kubeconfig=/etc/kubernetes/scheduler.conf
+      --authorization-kubeconfig=/etc/kubernetes/scheduler.conf
+      --bind-address=127.0.0.1
+      --kubeconfig=/etc/kubernetes/scheduler.conf
+      --leader-elect=true
+    State:          Running
+      Started:      Thu, 03 Sep 2026 13:39:22 +0000
+    Ready:          True
+    Restart Count:  0
+    Requests:
+      cpu:        100m
+    Liveness:     http-get https://127.0.0.1:probe-port/livez delay=10s timeout=15s period=10s #success=1 #failure=8
+    Readiness:    http-get https://127.0.0.1:probe-port/readyz delay=0s timeout=15s period=1s #success=1 #failure=3
+    Startup:      http-get https://127.0.0.1:probe-port/livez delay=10s timeout=15s period=10s #success=1 #failure=24
+    Environment:  <none>
+    Mounts:
+      /etc/kubernetes/scheduler.conf from kubeconfig (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  kubeconfig:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/kubernetes/scheduler.conf
+    HostPathType:  FileOrCreate
+QoS Class:         Burstable
+Node-Selectors:    <none>
+Tolerations:       :NoExecute op=Exists
+Events:            <none>
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get svc -n kube-system 
+NAME       TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)                  AGE
+kube-dns   ClusterIP   172.20.0.10   <none>        53/UDP,53/TCP,9153/TCP   20m
+
+controlplane ~ ➜  kubectl get all -n kube-system 
+NAME                                       READY   STATUS    RESTARTS   AGE
+pod/coredns-6f6c7df987-mnbq8               1/1     Running   0          20m
+pod/coredns-6f6c7df987-vf8f7               1/1     Running   0          20m
+pod/etcd-controlplane                      1/1     Running   0          20m
+pod/kube-apiserver-controlplane            1/1     Running   0          20m
+pod/kube-controller-manager-controlplane   1/1     Running   0          20m
+pod/kube-proxy-pxqf4                       1/1     Running   0          20m
+pod/kube-scheduler-controlplane            1/1     Running   0          20m
+
+NAME               TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)                  AGE
+service/kube-dns   ClusterIP   172.20.0.10   <none>        53/UDP,53/TCP,9153/TCP   20m
+
+NAME                        DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+daemonset.apps/kube-proxy   1         1         1       1            1           kubernetes.io/os=linux   20m
+
+NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/coredns   2/2     2            2           20m
+
+NAME                                 DESIRED   CURRENT   READY   AGE
+replicaset.apps/coredns-6f6c7df987   2         2         2       20m
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get serviceaccounts -n kube-system 
+NAME                                          AGE
+attachdetach-controller                       21m
+bootstrap-signer                              21m
+certificate-controller                        21m
+clusterrole-aggregation-controller            21m
+coredns                                       21m
+cronjob-controller                            21m
+daemon-set-controller                         21m
+default                                       21m
+deployment-controller                         21m
+disruption-controller                         21m
+endpoint-controller                           21m
+endpointslice-controller                      21m
+endpointslicemirroring-controller             21m
+ephemeral-volume-controller                   21m
+expand-controller                             21m
+generic-garbage-collector                     21m
+horizontal-pod-autoscaler                     21m
+job-controller                                21m
+kube-proxy                                    21m
+legacy-service-account-token-cleaner          21m
+my-scheduler                                  111s
+namespace-controller                          21m
+node-controller                               21m
+persistent-volume-binder                      21m
+pod-garbage-collector                         21m
+pv-protection-controller                      21m
+pvc-protection-controller                     21m
+replicaset-controller                         21m
+replication-controller                        21m
+resource-claim-controller                     21m
+resourcequota-controller                      21m
+root-ca-cert-publisher                        21m
+service-account-controller                    21m
+service-cidrs-controller                      21m
+statefulset-controller                        21m
+token-cleaner                                 21m
+ttl-after-finished-controller                 21m
+ttl-controller                                21m
+validatingadmissionpolicy-status-controller   21m
+volumeattributesclass-protection-controller   21m
+
+controlplane ~ ➜  kubectl get clusterrolebindings -n kube-system 
+NAME                                                            ROLE                                                                               AGE
+cluster-admin                                                   ClusterRole/cluster-admin                                                          21m
+flannel                                                         ClusterRole/flannel                                                                21m
+kubeadm:cluster-admins                                          ClusterRole/cluster-admin                                                          21m
+kubeadm:get-nodes                                               ClusterRole/kubeadm:get-nodes                                                      21m
+kubeadm:kubelet-bootstrap                                       ClusterRole/system:node-bootstrapper                                               21m
+kubeadm:node-autoapprove-bootstrap                              ClusterRole/system:certificates.k8s.io:certificatesigningrequests:nodeclient       21m
+kubeadm:node-autoapprove-certificate-rotation                   ClusterRole/system:certificates.k8s.io:certificatesigningrequests:selfnodeclient   21m
+kubeadm:node-proxier                                            ClusterRole/system:node-proxier                                                    21m
+my-scheduler-as-kube-scheduler                                  ClusterRole/system:kube-scheduler                                                  2m37s
+my-scheduler-as-volume-scheduler                                ClusterRole/system:volume-scheduler                                                2m37s
+system:basic-user                                               ClusterRole/system:basic-user                                                      21m
+system:controller:attachdetach-controller                       ClusterRole/system:controller:attachdetach-controller                              21m
+system:controller:certificate-controller                        ClusterRole/system:controller:certificate-controller                               21m
+system:controller:clusterrole-aggregation-controller            ClusterRole/system:controller:clusterrole-aggregation-controller                   21m
+system:controller:cronjob-controller                            ClusterRole/system:controller:cronjob-controller                                   21m
+system:controller:daemon-set-controller                         ClusterRole/system:controller:daemon-set-controller                                21m
+system:controller:deployment-controller                         ClusterRole/system:controller:deployment-controller                                21m
+system:controller:disruption-controller                         ClusterRole/system:controller:disruption-controller                                21m
+system:controller:endpoint-controller                           ClusterRole/system:controller:endpoint-controller                                  21m
+system:controller:endpointslice-controller                      ClusterRole/system:controller:endpointslice-controller                             21m
+system:controller:endpointslicemirroring-controller             ClusterRole/system:controller:endpointslicemirroring-controller                    21m
+system:controller:ephemeral-volume-controller                   ClusterRole/system:controller:ephemeral-volume-controller                          21m
+system:controller:expand-controller                             ClusterRole/system:controller:expand-controller                                    21m
+system:controller:generic-garbage-collector                     ClusterRole/system:controller:generic-garbage-collector                            21m
+system:controller:horizontal-pod-autoscaler                     ClusterRole/system:controller:horizontal-pod-autoscaler                            21m
+system:controller:job-controller                                ClusterRole/system:controller:job-controller                                       21m
+system:controller:legacy-service-account-token-cleaner          ClusterRole/system:controller:legacy-service-account-token-cleaner                 21m
+system:controller:namespace-controller                          ClusterRole/system:controller:namespace-controller                                 21m
+system:controller:node-controller                               ClusterRole/system:controller:node-controller                                      21m
+system:controller:persistent-volume-binder                      ClusterRole/system:controller:persistent-volume-binder                             21m
+system:controller:pod-garbage-collector                         ClusterRole/system:controller:pod-garbage-collector                                21m
+system:controller:pv-protection-controller                      ClusterRole/system:controller:pv-protection-controller                             21m
+system:controller:pvc-protection-controller                     ClusterRole/system:controller:pvc-protection-controller                            21m
+system:controller:replicaset-controller                         ClusterRole/system:controller:replicaset-controller                                21m
+system:controller:replication-controller                        ClusterRole/system:controller:replication-controller                               21m
+system:controller:resource-claim-controller                     ClusterRole/system:controller:resource-claim-controller                            21m
+system:controller:resourcequota-controller                      ClusterRole/system:controller:resourcequota-controller                             21m
+system:controller:root-ca-cert-publisher                        ClusterRole/system:controller:root-ca-cert-publisher                               21m
+system:controller:route-controller                              ClusterRole/system:controller:route-controller                                     21m
+system:controller:selinux-warning-controller                    ClusterRole/system:controller:selinux-warning-controller                           21m
+system:controller:service-account-controller                    ClusterRole/system:controller:service-account-controller                           21m
+system:controller:service-cidrs-controller                      ClusterRole/system:controller:service-cidrs-controller                             21m
+system:controller:service-controller                            ClusterRole/system:controller:service-controller                                   21m
+system:controller:statefulset-controller                        ClusterRole/system:controller:statefulset-controller                               21m
+system:controller:ttl-after-finished-controller                 ClusterRole/system:controller:ttl-after-finished-controller                        21m
+system:controller:ttl-controller                                ClusterRole/system:controller:ttl-controller                                       21m
+system:controller:validatingadmissionpolicy-status-controller   ClusterRole/system:controller:validatingadmissionpolicy-status-controller          21m
+system:controller:volumeattributesclass-protection-controller   ClusterRole/system:controller:volumeattributesclass-protection-controller          21m
+system:coredns                                                  ClusterRole/system:coredns                                                         21m
+system:discovery                                                ClusterRole/system:discovery                                                       21m
+system:kube-controller-manager                                  ClusterRole/system:kube-controller-manager                                         21m
+system:kube-dns                                                 ClusterRole/system:kube-dns                                                        21m
+system:kube-scheduler                                           ClusterRole/system:kube-scheduler                                                  21m
+system:monitoring                                               ClusterRole/system:monitoring                                                      21m
+system:node                                                     ClusterRole/system:node                                                            21m
+system:node-proxier                                             ClusterRole/system:node-proxier                                                    21m
+system:public-info-viewer                                       ClusterRole/system:public-info-viewer                                              21m
+system:service-account-issuer-discovery                         ClusterRole/system:service-account-issuer-discovery                                21m
+system:volume-scheduler                                         ClusterRole/system:volume-scheduler                                                21m
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+----------------------------------------------------------------------------------------------------------------
+We have already created the ServiceAccount and ClusterRoleBinding that our custom scheduler will make use of.
+
+Checkout the following Kubernetes objects:
+
+ServiceAccount: my-scheduler (kube-system namespace)
+ClusterRoleBinding: my-scheduler-as-kube-scheduler
+ClusterRoleBinding: my-scheduler-as-volume-scheduler
+
+
+Run the command: kubectl get serviceaccount -n kube-system and kubectl get clusterrolebinding
+----------------------------------------------------------------------------------------------------------------
+
+controlplane ~ ➜  ls -ltr
+total 16
+-rw-r--r-- 1 root root 105 Aug 18 12:38 nginx-pod.yaml
+-rw-r--r-- 1 root root 893 Aug 18 12:38 my-scheduler.yaml
+-rw-r--r-- 1 root root 155 Aug 18 12:38 my-scheduler-config.yaml
+-rw-r--r-- 1 root root 336 Sep  3 13:49 my-scheduler-configmap.yaml
+
+controlplane ~ ➜  cat my-scheduler-configmap.yaml 
+apiVersion: v1
+data:
+  my-scheduler-config.yaml: |
+    apiVersion: kubescheduler.config.k8s.io/v1
+    kind: KubeSchedulerConfiguration
+    profiles:
+      - schedulerName: my-scheduler
+    leaderElection:
+      leaderElect: false
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: my-scheduler-config
+  namespace: kube-system
+
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  cat my-scheduler-config.yaml 
+apiVersion: kubescheduler.config.k8s.io/v1
+kind: KubeSchedulerConfiguration
+profiles:
+  - schedulerName: my-scheduler
+leaderElection:
+  leaderElect: false
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl apply -f my-scheduler-configmap.yaml
+configmap/my-scheduler-config created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get configmap -n kube-system
+NAME                                                   DATA   AGE
+coredns                                                1      26m
+extension-apiserver-authentication                     6      26m
+kube-apiserver-legacy-service-account-token-tracking   1      26m
+kube-proxy                                             2      26m
+kube-root-ca.crt                                       1      26m
+kubeadm-config                                         1      26m
+kubelet-config                                         1      26m
+my-scheduler-config                                    1      23s
+
+controlplane ~ ➜  
+----------------------------------------------------------------------------------------------------
+
+Please create a ConfigMap that the new scheduler will utilize, implementing the concept of ConfigMap as a volume.
+A ConfigMap definition file named my-scheduler-configmap.yaml has been provided at the /root/ path. This file will be used to create a ConfigMap with the name my-scheduler-config, utilizing the content from the file located at /root/my-scheduler-config.yaml.
+
+----------------------------------------------------------------------------------------------------
+controlplane ~ ➜  cat my-scheduler.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: my-scheduler
+  name: my-scheduler
+  namespace: kube-system
+spec:
+  serviceAccountName: my-scheduler
+  containers:
+  - command:
+    - /usr/local/bin/kube-scheduler
+    - --config=/etc/kubernetes/my-scheduler/my-scheduler-config.yaml
+    image: <use-correct-image>
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: 10259
+        scheme: HTTPS
+      initialDelaySeconds: 15
+    name: kube-second-scheduler
+    readinessProbe:
+      httpGet:
+        path: /healthz
+        port: 10259
+        scheme: HTTPS
+    resources:
+      requests:
+        cpu: '0.1'
+    securityContext:
+      privileged: false
+    volumeMounts:
+      - name: config-volume
+        mountPath: /etc/kubernetes/my-scheduler
+  hostNetwork: false
+  hostPID: false
+  volumes:
+    - name: config-volume
+      configMap:
+        name: my-scheduler-config
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl describe pod kube-scheduler-controlplane --namespace=kube-system
+Name:                 kube-scheduler-controlplane
+Namespace:            kube-system
+Priority:             2000001000
+Priority Class Name:  system-node-critical
+Node:                 controlplane/10.244.23.140
+Start Time:           Thu, 03 Sep 2026 13:39:30 +0000
+Labels:               component=kube-scheduler
+                      tier=control-plane
+Annotations:          kubernetes.io/config.hash: 4f45952084b9f8aac04db13d5315645d
+                      kubernetes.io/config.mirror: 4f45952084b9f8aac04db13d5315645d
+                      kubernetes.io/config.seen: 2026-09-03T13:39:30.556506199Z
+                      kubernetes.io/config.source: file
+Status:               Running
+SeccompProfile:       RuntimeDefault
+IP:                   10.244.23.140
+IPs:
+  IP:           10.244.23.140
+Controlled By:  Node/controlplane
+Containers:
+  kube-scheduler:
+    Container ID:  containerd://261b136afbe1b492e063edc878470124902cdf463f8d08f7262ca5e8f11519e8
+    Image:         registry.k8s.io/kube-scheduler:v1.35.0
+    Image ID:      registry.k8s.io/kube-scheduler@sha256:0ab622491a82532e01876d55e365c08c5bac01bcd5444a8ed58c1127ab47819f
+    Port:          10259/TCP (probe-port)
+    Host Port:     10259/TCP (probe-port)
+    Command:
+      kube-scheduler
+      --authentication-kubeconfig=/etc/kubernetes/scheduler.conf
+      --authorization-kubeconfig=/etc/kubernetes/scheduler.conf
+      --bind-address=127.0.0.1
+      --kubeconfig=/etc/kubernetes/scheduler.conf
+      --leader-elect=true
+    State:          Running
+      Started:      Thu, 03 Sep 2026 13:39:22 +0000
+    Ready:          True
+    Restart Count:  0
+    Requests:
+      cpu:        100m
+    Liveness:     http-get https://127.0.0.1:probe-port/livez delay=10s timeout=15s period=10s #success=1 #failure=8
+    Readiness:    http-get https://127.0.0.1:probe-port/readyz delay=0s timeout=15s period=1s #success=1 #failure=3
+    Startup:      http-get https://127.0.0.1:probe-port/livez delay=10s timeout=15s period=10s #success=1 #failure=24
+    Environment:  <none>
+    Mounts:
+      /etc/kubernetes/scheduler.conf from kubeconfig (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  kubeconfig:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/kubernetes/scheduler.conf
+    HostPathType:  FileOrCreate
+QoS Class:         Burstable
+Node-Selectors:    <none>
+Tolerations:       :NoExecute op=Exists
+Events:            <none>
+
+controlplane ~ ➜  vi my-scheduler.yaml 
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get pods -n kubec-system
+No resources found in kubec-system namespace.
+
+controlplane ~ ➜  kubectl get pods -n kube-system
+NAME                                   READY   STATUS    RESTARTS   AGE
+coredns-6f6c7df987-mnbq8               1/1     Running   0          29m
+coredns-6f6c7df987-vf8f7               1/1     Running   0          29m
+etcd-controlplane                      1/1     Running   0          29m
+kube-apiserver-controlplane            1/1     Running   0          29m
+kube-controller-manager-controlplane   1/1     Running   0          29m
+kube-proxy-pxqf4                       1/1     Running   0          29m
+kube-scheduler-controlplane            1/1     Running   0          29m
+
+controlplane ~ ➜  kubectl apply -f  my-scheduler.yaml 
+pod/my-scheduler created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get pods -n kube-system
+NAME                                   READY   STATUS    RESTARTS   AGE
+coredns-6f6c7df987-mnbq8               1/1     Running   0          29m
+coredns-6f6c7df987-vf8f7               1/1     Running   0          29m
+etcd-controlplane                      1/1     Running   0          29m
+kube-apiserver-controlplane            1/1     Running   0          29m
+kube-controller-manager-controlplane   1/1     Running   0          29m
+kube-proxy-pxqf4                       1/1     Running   0          29m
+kube-scheduler-controlplane            1/1     Running   0          29m
+my-scheduler                           1/1     Running   0          4s
+
+controlplane ~ ➜  ls -ltr
+total 16
+-rw-r--r-- 1 root root 105 Aug 18 12:38 nginx-pod.yaml
+-rw-r--r-- 1 root root 155 Aug 18 12:38 my-scheduler-config.yaml
+-rw-r--r-- 1 root root 336 Sep  3 13:49 my-scheduler-configmap.yaml
+-rw-r--r-- 1 root root 913 Sep  3 14:08 my-scheduler.yaml
+
+controlplane ~ ➜  cat nginx-pod.yaml 
+apiVersion: v1 
+kind: Pod 
+metadata:
+  name: nginx 
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  vi nginx-pod.yaml 
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  cat nginx-pod.yaml 
+apiVersion: v1 
+kind: Pod 
+metadata:
+  name: nginx 
+spec:
+  serviceAccountName: my-scheduler
+  containers:
+  - image: nginx
+    name: nginx
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl apply -f nginx-pod.yaml 
+Error from server (Forbidden): error when creating "nginx-pod.yaml": pods "nginx" is forbidden: error looking up service account default/my-scheduler: serviceaccount "my-scheduler" not found
+
+controlplane ~ ✖ vi nginx-pod.yaml 
+
+controlplane ~ ➜  kubectl apply -f nginx-pod.yaml 
+pod/nginx created
+
+controlplane ~ ➜  kubectl get pods -n kube-system
+NAME                                   READY   STATUS    RESTARTS   AGE
+coredns-6f6c7df987-mnbq8               1/1     Running   0          35m
+coredns-6f6c7df987-vf8f7               1/1     Running   0          35m
+etcd-controlplane                      1/1     Running   0          35m
+kube-apiserver-controlplane            1/1     Running   0          35m
+kube-controller-manager-controlplane   1/1     Running   0          35m
+kube-proxy-pxqf4                       1/1     Running   0          35m
+kube-scheduler-controlplane            1/1     Running   0          35m
+my-scheduler                           1/1     Running   0          5m33s
+
+controlplane ~ ➜  kubectl get pods -n nginx
+No resources found in nginx namespace.
+
+controlplane ~ ➜  kubectl get pods -A
+NAMESPACE      NAME                                   READY   STATUS    RESTARTS   AGE
+default        nginx                                  1/1     Running   0          33s
+kube-flannel   kube-flannel-ds-dm5tk                  1/1     Running   0          35m
+kube-system    coredns-6f6c7df987-mnbq8               1/1     Running   0          35m
+kube-system    coredns-6f6c7df987-vf8f7               1/1     Running   0          35m
+kube-system    etcd-controlplane                      1/1     Running   0          35m
+kube-system    kube-apiserver-controlplane            1/1     Running   0          35m
+kube-system    kube-controller-manager-controlplane   1/1     Running   0          35m
+kube-system    kube-proxy-pxqf4                       1/1     Running   0          35m
+kube-system    kube-scheduler-controlplane            1/1     Running   0          35m
+kube-system    my-scheduler                           1/1     Running   0          5m56s
+
+controlplane ~ ➜  
