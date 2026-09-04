@@ -1,0 +1,132 @@
+ontrolplane ~ ➜  ls -ltr
+total 8
+-rw-r--r-- 1 root root 509 Sep  3 05:54 deployment.yml
+-rw-r--r-- 1 root root 949 Sep  4 23:10 skooner-sa-token.txt
+
+controlplane ~ ➜  cat deployment.yml 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-web-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flask-app
+  template:
+    metadata:
+      labels:
+        app: flask-app
+    spec:
+      containers:
+      - name: flask
+        image: rakshithraka/flask-web-app
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-web-app-service
+spec:
+  type: ClusterIP
+  selector:
+    app: flask-app
+  ports:
+   - port: 80
+     targetPort: 80    
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k apply -f deployment.yml 
+deployment.apps/flask-web-app created
+service/flask-web-app-service created
+
+controlplane ~ ➜  k get po
+NAME                            READY   STATUS    RESTARTS   AGE
+flask-web-app-66ffff88d-gmngk   1/1     Running   0          55s
+flask-web-app-66ffff88d-rrghg   1/1     Running   0          55s
+
+controlplane ~ ➜  k get deployments.apps 
+NAME            READY   UP-TO-DATE   AVAILABLE   AGE
+flask-web-app   2/2     2            2           62s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get all
+NAME                                READY   STATUS    RESTARTS   AGE
+pod/flask-web-app-66ffff88d-gmngk   1/1     Running   0          5m2s
+pod/flask-web-app-66ffff88d-rrghg   1/1     Running   0          5m2s
+
+NAME                            TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+service/flask-web-app-service   ClusterIP   172.20.241.129   <none>        80/TCP    5m2s
+service/kubernetes              ClusterIP   172.20.0.1       <none>        443/TCP   74m
+
+NAME                            READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/flask-web-app   2/2     2            2           5m2s
+
+NAME                                      DESIRED   CURRENT   READY   AGE
+replicaset.apps/flask-web-app-66ffff88d   2         2         2       5m2s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get deployments.apps 
+NAME            READY   UP-TO-DATE   AVAILABLE   AGE
+flask-web-app   2/2     2            2           5m14s
+
+controlplane ~ ➜  cat skooner-sa-token.txt 
+eyJhbGciOiJSUzI1NiIsImtpZCI6IkdNYzFkenp2WlFPVExFYm1mdXNKUnk4ZFd4QTRxWkNXUURlckVBWTFLSmsifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwiXSwiZXhwIjoxNzg4NTY3MDM3LCJpYXQiOjE3ODg1NjM0MzcsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsIiwianRpIjoiYjcxMzQ5N2QtNDRhMS00NWQzLTk2ZjctZjc1OGU1YzBjZmVmIiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsInNlcnZpY2VhY2NvdW50Ijp7Im5hbWUiOiJza29vbmVyLXNhIiwidWlkIjoiODg4Y2JmOWItYjI4Zi00YzUzLWJiOGMtZDQ3ODZhNDVhNDU1In19LCJuYmYiOjE3ODg1NjM0MzcsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDprdWJlLXN5c3RlbTpza29vbmVyLXNhIn0.vUcHUwDbFyfNSAwC-Pj5Ckq1Y8rQYM6x_1wO4zDlgTUBUy6X4nvJZFuAkZfTekfUcbag6RNfXPqX_CIw9hID6HJ0kXI4RDFZWUXWaX0uq5Dbne1G2Cr5ini3oqpgdMN7qhcMWz7z0eJsBjku75HgaNTgcs6GQ-jw6EmxBKqdKNWVZh2KkcmJ3s8fPcyuIMh2aWac-mCWQR4vxN9zKk788WGnOVfecOIzoLSj9w7g8NWixChQq7uVI71JMtohPTJ8ncJT2OrD7HbsXIlmsAmrPeqLvhn7DbZJ0vtt0kilCcVT6hDjWZAkqkG_ucMAOmR_-YUuJEjo78B1tItdnN3wBg
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k scale flask-web-app --replicas=3
+error: the server doesn't have a resource type "flask-web-app"
+
+
+controlplane ~ ➜  k get replicasets.apps 
+NAME                      DESIRED   CURRENT   READY   AGE
+flask-web-app-66ffff88d   2         2         2       8m45s
+
+controlplane ~ ➜  k scale flask-web-app-66ffff88d --replicas=3
+error: the server doesn't have a resource type "flask-web-app-66ffff88d"
+
+controlplane ~ ✖ k scale replicasets flask-web-app-66ffff88d --replicas=3
+replicaset.apps/flask-web-app-66ffff88d scaled
+
+controlplane ~ ➜  k get replicasets.apps 
+NAME                      DESIRED   CURRENT   READY   AGE
+flask-web-app-66ffff88d   2         2         2       9m27s
+
+controlplane ~ ➜  k get pods
+NAME                            READY   STATUS    RESTARTS   AGE
+flask-web-app-66ffff88d-gmngk   1/1     Running   0          9m38s
+flask-web-app-66ffff88d-rrghg   1/1     Running   0          9m38s
+
+controlplane ~ ➜  k scale deployment.apps/flask-web-app --replicas=3
+deployment.apps/flask-web-app scaled
+
+controlplane ~ ➜  k get all
+NAME                                READY   STATUS    RESTARTS   AGE
+pod/flask-web-app-66ffff88d-gmngk   1/1     Running   0          10m
+pod/flask-web-app-66ffff88d-ql9sl   1/1     Running   0          4s
+pod/flask-web-app-66ffff88d-rrghg   1/1     Running   0          10m
+
+NAME                            TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+service/flask-web-app-service   ClusterIP   172.20.241.129   <none>        80/TCP    10m
+service/kubernetes              ClusterIP   172.20.0.1       <none>        443/TCP   79m
+
+NAME                            READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/flask-web-app   3/3     3            3           10m
+
+NAME                                      DESIRED   CURRENT   READY   AGE
+replicaset.apps/flask-web-app-66ffff88d   3         3         3       10m
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
