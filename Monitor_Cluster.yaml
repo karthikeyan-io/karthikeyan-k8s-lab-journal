@@ -1,0 +1,136 @@
+--------------------------------------------------------------------------------------------
+
+Let us deploy the Metrics Server to enable monitoring of the PODs and Nodes in the cluster
+
+--------------------------------------------------------------------------------------------
+
+controlplane ~ ➜  alias k=kubectl
+
+controlplane ~ ➜  k get po
+NAME       READY   STATUS    RESTARTS   AGE
+elephant   1/1     Running   0          98s
+lion       1/1     Running   0          99s
+rabbit     1/1     Running   0          98s
+
+controlplane ~ ➜  k get po -A
+NAMESPACE      NAME                                   READY   STATUS    RESTARTS   AGE
+default        elephant                               1/1     Running   0          102s
+default        lion                                   1/1     Running   0          103s
+default        rabbit                                 1/1     Running   0          102s
+kube-flannel   kube-flannel-ds-2c5cm                  1/1     Running   0          55m
+kube-flannel   kube-flannel-ds-d5gbn                  1/1     Running   0          55m
+kube-system    coredns-6f6c7df987-4qpbr               1/1     Running   0          55m
+kube-system    coredns-6f6c7df987-tltjz               1/1     Running   0          55m
+kube-system    etcd-controlplane                      1/1     Running   0          55m
+kube-system    kube-apiserver-controlplane            1/1     Running   0          55m
+kube-system    kube-controller-manager-controlplane   1/1     Running   0          55m
+kube-system    kube-proxy-ctw6p                       1/1     Running   0          55m
+kube-system    kube-proxy-w9l8s                       1/1     Running   0          55m
+kube-system    kube-scheduler-controlplane            1/1     Running   0          55m
+
+controlplane ~ ➜  ls -ltr
+total 0
+-rw-r--r-- 1 root root 0 Sep  4 09:06 sample.yaml
+
+controlplane ~ ➜  kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+
+
+serviceaccount/metrics-server created
+clusterrole.rbac.authorization.k8s.io/system:aggregated-metrics-reader created
+clusterrole.rbac.authorization.k8s.io/system:metrics-server created
+rolebinding.rbac.authorization.k8s.io/metrics-server-auth-reader created
+clusterrolebinding.rbac.authorization.k8s.io/metrics-server:system:auth-delegator created
+clusterrolebinding.rbac.authorization.k8s.io/system:metrics-server created
+service/metrics-server created
+deployment.apps/metrics-server created
+apiservice.apiregistration.k8s.io/v1beta1.metrics.k8s.io created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get deployments.apps 
+No resources found in default namespace.
+
+controlplane ~ ➜  k get deployments.apps -A
+NAMESPACE     NAME             READY   UP-TO-DATE   AVAILABLE   AGE
+kube-system   coredns          2/2     2            2           57m
+kube-system   metrics-server   1/1     1            1           26s
+
+controlplane ~ ➜  k get deployments.apps metrics-server -n kube-system
+NAME             READY   UP-TO-DATE   AVAILABLE   AGE
+metrics-server   1/1     1            1           8m52s
+
+controlplane ~ ➜  k describe deployments.apps  metrics-server -n kube-system
+Name:                   metrics-server
+Namespace:              kube-system
+CreationTimestamp:      Fri, 04 Sep 2026 22:47:39 +0000
+Labels:                 k8s-app=metrics-server
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               k8s-app=metrics-server
+Replicas:               1 desired | 1 updated | 1 total | 1 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  0 max unavailable, 25% max surge
+Pod Template:
+  Labels:           k8s-app=metrics-server
+  Service Account:  metrics-server
+  Containers:
+   metrics-server:
+    Image:           registry.k8s.io/metrics-server/metrics-server:v0.9.0
+    Port:            10250/TCP (https)
+    Host Port:       0/TCP (https)
+    SeccompProfile:  RuntimeDefault
+    Args:
+      --cert-dir=/tmp
+      --secure-port=10250
+      --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+      --kubelet-use-node-status-port
+      --metric-resolution=15s
+    Requests:
+      cpu:        100m
+      memory:     200Mi
+    Liveness:     http-get https://:https/livez delay=0s timeout=1s period=10s #success=1 #failure=3
+    Readiness:    http-get https://:https/readyz delay=20s timeout=1s period=10s #success=1 #failure=3
+    Environment:  <none>
+    Mounts:
+      /tmp from tmp-dir (rw)
+  Volumes:
+   tmp-dir:
+    Type:               EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:             
+    SizeLimit:          <unset>
+  Priority Class Name:  system-cluster-critical
+  Node-Selectors:       kubernetes.io/os=linux
+  Tolerations:          <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   metrics-server-794dd65494 (1/1 replicas created)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  9m15s  deployment-controller  Scaled up replica set metrics-server-794dd65494 from 0 to 1
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl top node
+NAME           CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+controlplane   174m         1%       909Mi           1%          
+node01         21m          0%       164Mi           0%          
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl top pods
+NAME       CPU(cores)   MEMORY(bytes)   
+elephant   12m          30Mi            
+lion       1m           16Mi            
+rabbit     85m          250Mi           
+
+controlplane ~ ➜  
