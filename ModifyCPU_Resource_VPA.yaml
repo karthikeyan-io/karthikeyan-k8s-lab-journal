@@ -1,0 +1,271 @@
+Modify CPU Resource in VPA
+-------------------------------
+
+controlplane ~ ➜  kubectl top nodes
+NAME           CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+controlplane   65m          0%       594Mi           0%          
+node01         28m          0%       220Mi           0%          
+
+controlplane ~ ➜  k top pods
+No resources found in default namespace.
+
+controlplane ~ ➜  k get all
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   172.20.0.1   <none>        443/TCP   46m
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  ls -ltr
+total 4
+-rw-r--r-- 1 root root 656 Sep  3 05:54 vpa-cpu-testing.yml
+
+controlplane ~ ➜  cat vpa-cpu-testing.yml 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app-4
+  labels:
+    app: flask-app-4
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flask-app-4
+  template:
+    metadata:
+      labels:
+        app: flask-app-4
+    spec:
+      containers:
+      - name: flask-app-4
+        image:  kodekloud/flask-session-app:1 
+        ports:
+        - name: http
+          containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-app-4-service
+  labels:
+    app: flask-app-4
+spec:
+  type: NodePort
+  selector:
+    app: flask-app-4
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+    nodePort: 30080
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k apply -f vpa-cpu-testing.yml 
+deployment.apps/flask-app-4 created
+service/flask-app-4-service created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get all
+NAME                               READY   STATUS    RESTARTS   AGE
+pod/flask-app-4-56cc788cb8-5xfqf   1/1     Running   0          5s
+pod/flask-app-4-56cc788cb8-79xbk   1/1     Running   0          5s
+
+NAME                          TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+service/flask-app-4-service   NodePort    172.20.230.165   <none>        80:30080/TCP   5s
+service/kubernetes            ClusterIP   172.20.0.1       <none>        443/TCP        47m
+
+NAME                          READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/flask-app-4   2/2     2            2           5s
+
+NAME                                     DESIRED   CURRENT   READY   AGE
+replicaset.apps/flask-app-4-56cc788cb8   2         2         2       5s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k top pods
+NAME                           CPU(cores)   MEMORY(bytes)   
+flask-app-4-56cc788cb8-5xfqf   1m           19Mi            
+flask-app-4-56cc788cb8-79xbk   1m           19Mi            
+
+controlplane ~ ➜  ls -ltr
+total 8
+-rw-r--r-- 1 root root 468 Sep  3 05:54 vpa-cpu.yml
+-rw-r--r-- 1 root root 656 Sep  3 05:54 vpa-cpu-testing.yml
+
+controlplane ~ ➜  cat vpa-cpu.yml 
+---
+apiVersion: "autoscaling.k8s.io/v1"
+kind: VerticalPodAutoscaler
+metadata:
+  name: flask-app
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind: Deployment
+    name: flask-app-4
+  updatePolicy:
+    updateMode: "Off"  # You can set this to "Auto" if you want automatic updates
+  resourcePolicy:
+    containerPolicies:
+      - containerName: '*'
+        minAllowed:
+          cpu: 100m
+        maxAllowed:
+          cpu: 1000m
+        controlledResources: ["cpu"]
+
+controlplane ~ ➜  k apply -f vpa-cpu.yml 
+verticalpodautoscaler.autoscaling.k8s.io/flask-app created
+
+controlplane ~ ➜  k get verticalpodautoscaler
+NAME        MODE   CPU   MEM   PROVIDED   AGE
+flask-app   Off                           20s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k describe verticalpodautoscaler flask-app
+Name:         flask-app
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+API Version:  autoscaling.k8s.io/v1
+Kind:         VerticalPodAutoscaler
+Metadata:
+  Creation Timestamp:  2026-09-06T12:53:02Z
+  Generation:          1
+  Resource Version:    4965
+  UID:                 798ebeae-4797-4c8d-a2fe-5f3d7d92d9b0
+Spec:
+  Resource Policy:
+    Container Policies:
+      Container Name:  *
+      Controlled Resources:
+        cpu
+      Max Allowed:
+        Cpu:  1000m
+      Min Allowed:
+        Cpu:  100m
+  Target Ref:
+    API Version:  apps/v1
+    Kind:         Deployment
+    Name:         flask-app-4
+  Update Policy:
+    Update Mode:  Off
+Events:           <none>
+
+controlplane ~ ➜  k top  pod 
+NAME                           CPU(cores)   MEMORY(bytes)   
+flask-app-4-56cc788cb8-5xfqf   1m           19Mi            
+flask-app-4-56cc788cb8-79xbk   1m           19Mi            
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  ls -ltr
+total 12
+-rw-r--r-- 1 root root 468 Sep  3 05:54 vpa-cpu.yml
+-rw-r--r-- 1 root root 656 Sep  3 05:54 vpa-cpu-testing.yml
+-rwxr-xr-x 1 root root 220 Sep  3 05:54 load.sh
+
+controlplane ~ ➜  cat load.sh 
+#!/bin/bash
+
+echo "Load initiated in the background. Please do not terminate this process."
+
+timeout 1000s bash -c 'for i in {1..10}; do (while true; do curl -s http://controlplane:30080 > /dev/null; done) & done; wait'
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  bash load.sh 
+Load initiated in the background. Please do not terminate this process.
+
+
+
+-------------------------------------------------
+Terminal -2
+
+controlplane ~ ➜  k top pods
+NAME                           CPU(cores)   MEMORY(bytes)   
+flask-app-4-56cc788cb8-5xfqf   231m         21Mi            
+flask-app-4-56cc788cb8-79xbk   182m         22Mi            
+
+controlplane ~ ➜  k get vpa
+NAME        MODE   CPU    MEM   PROVIDED   AGE
+flask-app   Off    410m         True       14m
+
+controlplane ~ ➜  k get vpa flask-app -o jsonpath 
+error: template format specified but no template given
+
+controlplane ~ ✖ k get vpa flask-app -o yaml
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"autoscaling.k8s.io/v1","kind":"VerticalPodAutoscaler","metadata":{"annotations":{},"name":"flask-app","namespace":"default"},"spec":{"resourcePolicy":{"containerPolicies":[{"containerName":"*","controlledResources":["cpu"],"maxAllowed":{"cpu":"1000m"},"minAllowed":{"cpu":"100m"}}]},"targetRef":{"apiVersion":"apps/v1","kind":"Deployment","name":"flask-app-4"},"updatePolicy":{"updateMode":"Off"}}}
+  creationTimestamp: "2026-09-06T12:53:02Z"
+  generation: 1
+  name: flask-app
+  namespace: default
+  resourceVersion: "6316"
+  uid: 798ebeae-4797-4c8d-a2fe-5f3d7d92d9b0
+spec:
+  resourcePolicy:
+    containerPolicies:
+    - containerName: '*'
+      controlledResources:
+      - cpu
+      maxAllowed:
+        cpu: 1000m
+      minAllowed:
+        cpu: 100m
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: flask-app-4
+  updatePolicy:
+    updateMode: "Off"
+status:
+  conditions:
+  - lastTransitionTime: "2026-09-06T12:53:43Z"
+    status: "True"
+    type: RecommendationProvided
+  recommendation:
+    containerRecommendations:
+    - containerName: flask-app-4
+      lowerBound:
+        cpu: 190m
+      target:
+        cpu: 410m
+      uncappedTarget:
+        cpu: 410m
+      upperBound:
+        cpu: "1"
+
+controlplane ~ ➜  echo "410m" > /root/target
+
+controlplane ~ ➜  k top pods
+NAME                           CPU(cores)   MEMORY(bytes)   
+flask-app-4-56cc788cb8-5xfqf   164m         21Mi            
+flask-app-4-56cc788cb8-79xbk   136m         22Mi            
+
+controlplane ~ ➜  k top pods
+NAME                           CPU(cores)   MEMORY(bytes)   
+flask-app-4-56cc788cb8-5xfqf   164m         21Mi            
+flask-app-4-56cc788cb8-79xbk   136m         22Mi            
+
+controlplane ~ ➜  k top pods
+NAME                           CPU(cores)   MEMORY(bytes)   
+flask-app-4-56cc788cb8-5xfqf   324m         22Mi            
+flask-app-4-56cc788cb8-79xbk   296m         22Mi            
+
+controlplane ~ ➜  k top pods
+NAME                           CPU(cores)   MEMORY(bytes)   
+flask-app-4-56cc788cb8-5xfqf   244m         22Mi            
+flask-app-4-56cc788cb8-79xbk   335m         22Mi            
+
+controlplane ~ ➜  
