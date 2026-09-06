@@ -1,0 +1,505 @@
+Vertical Pod Autoscalar
+
+VPA+ Scale CPU and Memory with respect to loads
+
+HPA+ Scale PODs with respect to loads (fixed cpu and memory)
+=========================
+
+Introduction to Kubernetes Vertical Pod Autoscaler (VPA)
+---------------------------------------------------------
+
+We have prepared the required YAML files for you to deploy the Vertical Pod Autoscaler (VPA). Simply follow the steps below to apply the necessary configurations:
+
+Step 1: Install VPA Custom Resource Definitions (CRDs)
+These CRDs allow Kubernetes to recognize the custom resources that VPA uses to function properly. To install them, run this command:
+
+kubectl apply -f /root/vpa-crds.yml
+
+Step 2: Install VPA Role-Based Access Control (RBAC)
+RBAC ensures that VPA has the appropriate permissions to operate within your Kubernetes cluster. To install the RBAC settings, run:
+
+kubectl apply -f /root/vpa-rbac.yml
+
+By running these commands, the VPA will be successfully deployed to your cluster, ready to manage and adjust your pod resources dynamically.
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+Clone the VPA Repository and Set Up the Vertical Pod Autoscaler
+You are required to clone the Kubernetes Autoscaler repository into the /root directory and set up the Vertical Pod Autoscaler (VPA) by running the provided script.
+
+Steps:
+Clone the repository:
+
+First, navigate to the /root directory and clone the repository:
+
+  git clone https://github.com/kubernetes/autoscaler.git
+
+Navigate to the Vertical Pod Autoscaler directory:
+
+After cloning, move into the vertical-pod-autoscaler directory:
+
+   cd autoscaler/vertical-pod-autoscaler
+
+Run the setup script:
+
+Execute the provided script to deploy the Vertical Pod Autoscaler:
+
+   ./hack/vpa-up.sh
+
+By following these steps, the Vertical Pod Autoscaler will be installed and ready to manage pod resources in your Kubernetes cluster.
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+controlplane ~ ➜  k get all
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   172.20.0.1   <none>        443/TCP   58m
+
+controlplane ~ ➜  k get all -n kube-system 
+NAME                                       READY   STATUS    RESTARTS   AGE
+pod/coredns-6f6c7df987-r5pd6               1/1     Running   0          58m
+pod/coredns-6f6c7df987-wt9qk               1/1     Running   0          58m
+pod/etcd-controlplane                      1/1     Running   0          58m
+pod/kube-apiserver-controlplane            1/1     Running   0          58m
+pod/kube-controller-manager-controlplane   1/1     Running   0          58m
+pod/kube-proxy-74j54                       1/1     Running   0          57m
+pod/kube-proxy-l9kxx                       1/1     Running   0          58m
+pod/kube-scheduler-controlplane            1/1     Running   0          58m
+
+NAME               TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)                  AGE
+service/kube-dns   ClusterIP   172.20.0.10   <none>        53/UDP,53/TCP,9153/TCP   58m
+
+NAME                        DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+daemonset.apps/kube-proxy   2         2         2       2            2           kubernetes.io/os=linux   58m
+
+NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/coredns   2/2     2            2           58m
+
+NAME                                 DESIRED   CURRENT   READY   AGE
+replicaset.apps/coredns-6f6c7df987   2         2         2       58m
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get crds -n kube-system 
+No resources found
+
+controlplane ~ ➜  k api-resources | grep -i vpa
+
+controlplane ~ ✖ ls -ltr
+total 48
+-rw-r--r-- 1 root root  6719 Sep  3 05:54 vpa-rbac.yml
+-rw-r--r-- 1 root root 40169 Sep  3 05:54 vpa-crds.yml
+
+controlplane ~ ➜  k apply -f vpa-crds.yml 
+customresourcedefinition.apiextensions.k8s.io/verticalpodautoscalercheckpoints.autoscaling.k8s.io created
+customresourcedefinition.apiextensions.k8s.io/verticalpodautoscalers.autoscaling.k8s.io created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get crds -n kube-system 
+NAME                                                  CREATED AT
+verticalpodautoscalercheckpoints.autoscaling.k8s.io   2026-09-06T12:08:20Z
+verticalpodautoscalers.autoscaling.k8s.io             2026-09-06T12:08:20Z
+
+controlplane ~ ➜  k api-resources | grep -i vpa
+verticalpodautoscalercheckpoints    vpacheckpoint   autoscaling.k8s.io/v1             true         VerticalPodAutoscalerCheckpoint
+verticalpodautoscalers              vpa             autoscaling.k8s.io/v1             true         VerticalPodAutoscaler
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get clusterroles | grep -i vpa
+
+controlplane ~ ✖ 
+
+controlplane ~ ✖ k get clusterroles.rbac.authorization.k8s.io 
+NAME                                                                   CREATED AT
+admin                                                                  2026-09-06T11:08:55Z
+cluster-admin                                                          2026-09-06T11:08:55Z
+edit                                                                   2026-09-06T11:08:55Z
+flannel                                                                2026-09-06T11:08:57Z
+kubeadm:get-nodes                                                      2026-09-06T11:08:56Z
+system:aggregate-to-admin                                              2026-09-06T11:08:55Z
+system:aggregate-to-edit                                               2026-09-06T11:08:55Z
+system:aggregate-to-view                                               2026-09-06T11:08:55Z
+system:auth-delegator                                                  2026-09-06T11:08:55Z
+system:basic-user                                                      2026-09-06T11:08:55Z
+system:certificates.k8s.io:certificatesigningrequests:nodeclient       2026-09-06T11:08:55Z
+system:certificates.k8s.io:certificatesigningrequests:selfnodeclient   2026-09-06T11:08:55Z
+system:certificates.k8s.io:kube-apiserver-client-approver              2026-09-06T11:08:55Z
+system:certificates.k8s.io:kube-apiserver-client-kubelet-approver      2026-09-06T11:08:55Z
+system:certificates.k8s.io:kubelet-serving-approver                    2026-09-06T11:08:55Z
+system:certificates.k8s.io:legacy-unknown-approver                     2026-09-06T11:08:55Z
+system:controller:attachdetach-controller                              2026-09-06T11:08:55Z
+system:controller:certificate-controller                               2026-09-06T11:08:55Z
+system:controller:clusterrole-aggregation-controller                   2026-09-06T11:08:55Z
+system:controller:cronjob-controller                                   2026-09-06T11:08:55Z
+system:controller:daemon-set-controller                                2026-09-06T11:08:55Z
+system:controller:deployment-controller                                2026-09-06T11:08:55Z
+system:controller:disruption-controller                                2026-09-06T11:08:55Z
+system:controller:endpoint-controller                                  2026-09-06T11:08:55Z
+system:controller:endpointslice-controller                             2026-09-06T11:08:55Z
+system:controller:endpointslicemirroring-controller                    2026-09-06T11:08:55Z
+system:controller:ephemeral-volume-controller                          2026-09-06T11:08:55Z
+system:controller:expand-controller                                    2026-09-06T11:08:55Z
+system:controller:generic-garbage-collector                            2026-09-06T11:08:55Z
+system:controller:horizontal-pod-autoscaler                            2026-09-06T11:08:55Z
+system:controller:job-controller                                       2026-09-06T11:08:55Z
+system:controller:legacy-service-account-token-cleaner                 2026-09-06T11:08:55Z
+system:controller:namespace-controller                                 2026-09-06T11:08:55Z
+system:controller:node-controller                                      2026-09-06T11:08:55Z
+system:controller:persistent-volume-binder                             2026-09-06T11:08:55Z
+system:controller:pod-garbage-collector                                2026-09-06T11:08:55Z
+system:controller:pv-protection-controller                             2026-09-06T11:08:55Z
+system:controller:pvc-protection-controller                            2026-09-06T11:08:55Z
+system:controller:replicaset-controller                                2026-09-06T11:08:55Z
+system:controller:replication-controller                               2026-09-06T11:08:55Z
+system:controller:resource-claim-controller                            2026-09-06T11:08:55Z
+system:controller:resourcequota-controller                             2026-09-06T11:08:55Z
+system:controller:root-ca-cert-publisher                               2026-09-06T11:08:55Z
+system:controller:route-controller                                     2026-09-06T11:08:55Z
+system:controller:selinux-warning-controller                           2026-09-06T11:08:55Z
+system:controller:service-account-controller                           2026-09-06T11:08:55Z
+system:controller:service-cidrs-controller                             2026-09-06T11:08:55Z
+system:controller:service-controller                                   2026-09-06T11:08:55Z
+system:controller:statefulset-controller                               2026-09-06T11:08:55Z
+system:controller:ttl-after-finished-controller                        2026-09-06T11:08:55Z
+system:controller:ttl-controller                                       2026-09-06T11:08:55Z
+system:controller:validatingadmissionpolicy-status-controller          2026-09-06T11:08:55Z
+system:controller:volumeattributesclass-protection-controller          2026-09-06T11:08:55Z
+system:coredns                                                         2026-09-06T11:08:57Z
+system:discovery                                                       2026-09-06T11:08:55Z
+system:heapster                                                        2026-09-06T11:08:55Z
+system:kube-aggregator                                                 2026-09-06T11:08:55Z
+system:kube-controller-manager                                         2026-09-06T11:08:55Z
+system:kube-dns                                                        2026-09-06T11:08:55Z
+system:kube-scheduler                                                  2026-09-06T11:08:55Z
+system:kubelet-api-admin                                               2026-09-06T11:08:55Z
+system:monitoring                                                      2026-09-06T11:08:55Z
+system:node                                                            2026-09-06T11:08:55Z
+system:node-bootstrapper                                               2026-09-06T11:08:55Z
+system:node-problem-detector                                           2026-09-06T11:08:55Z
+system:node-proxier                                                    2026-09-06T11:08:55Z
+system:persistent-volume-provisioner                                   2026-09-06T11:08:55Z
+system:public-info-viewer                                              2026-09-06T11:08:55Z
+system:service-account-issuer-discovery                                2026-09-06T11:08:55Z
+system:volume-scheduler                                                2026-09-06T11:08:55Z
+view                                                                   2026-09-06T11:08:55Z
+
+controlplane ~ ➜  k get clusterroles.rbac.authorization.k8s.io | grep -i vpa
+
+controlplane ~ ✖ 
+
+controlplane ~ ✖ k get clusterrolebindings.rbac.authorization.k8s.io | grep -i vpa
+
+controlplane ~ ✖ 
+
+controlplane ~ ✖ kubectl apply -f /root/vpa-rbac.yml
+clusterrole.rbac.authorization.k8s.io/system:metrics-reader created
+clusterrole.rbac.authorization.k8s.io/system:vpa-actor created
+clusterrole.rbac.authorization.k8s.io/system:vpa-status-actor created
+clusterrole.rbac.authorization.k8s.io/system:vpa-checkpoint-actor created
+clusterrole.rbac.authorization.k8s.io/system:evictioner created
+clusterrolebinding.rbac.authorization.k8s.io/system:metrics-reader created
+clusterrolebinding.rbac.authorization.k8s.io/system:vpa-actor created
+clusterrolebinding.rbac.authorization.k8s.io/system:vpa-status-actor created
+clusterrolebinding.rbac.authorization.k8s.io/system:vpa-checkpoint-actor created
+clusterrole.rbac.authorization.k8s.io/system:vpa-target-reader created
+clusterrolebinding.rbac.authorization.k8s.io/system:vpa-target-reader-binding created
+clusterrolebinding.rbac.authorization.k8s.io/system:vpa-evictioner-binding created
+serviceaccount/vpa-admission-controller created
+serviceaccount/vpa-recommender created
+serviceaccount/vpa-updater created
+clusterrole.rbac.authorization.k8s.io/system:vpa-admission-controller created
+clusterrolebinding.rbac.authorization.k8s.io/system:vpa-admission-controller created
+clusterrole.rbac.authorization.k8s.io/system:vpa-status-reader created
+clusterrolebinding.rbac.authorization.k8s.io/system:vpa-status-reader-binding created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get clusterrolebindings.rbac.authorization.k8s.io | grep -i vpa
+system:vpa-actor                                                ClusterRole/system:vpa-actor                                                       6s
+system:vpa-admission-controller                                 ClusterRole/system:vpa-admission-controller                                        6s
+system:vpa-checkpoint-actor                                     ClusterRole/system:vpa-checkpoint-actor                                            6s
+system:vpa-evictioner-binding                                   ClusterRole/system:evictioner                                                      6s
+system:vpa-status-actor                                         ClusterRole/system:vpa-status-actor                                                6s
+system:vpa-status-reader-binding                                ClusterRole/system:vpa-status-reader                                               6s
+system:vpa-target-reader-binding                                ClusterRole/system:vpa-target-reader                                               6s
+
+controlplane ~ ➜  k get clusterroles.rbac.authorization.k8s.io | grep -i vpa
+system:vpa-actor                                                       2026-09-06T12:10:47Z
+system:vpa-admission-controller                                        2026-09-06T12:10:47Z
+system:vpa-checkpoint-actor                                            2026-09-06T12:10:47Z
+system:vpa-status-actor                                                2026-09-06T12:10:47Z
+system:vpa-status-reader                                               2026-09-06T12:10:47Z
+system:vpa-target-reader                                               2026-09-06T12:10:47Z
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜    git clone https://github.com/kubernetes/autoscaler.git
+Cloning into 'autoscaler'...
+remote: Enumerating objects: 248783, done.
+remote: Counting objects: 100% (2661/2661), done.
+remote: Compressing objects: 100% (1699/1699), done.
+remote: Total 248783 (delta 1785), reused 962 (delta 962), pack-reused 246122 (from 3)
+Receiving objects: 100% (248783/248783), 263.77 MiB | 31.32 MiB/s, done.
+Resolving deltas: 100% (162204/162204), done.
+
+controlplane ~ ➜     cd autoscaler/vertical-pod-autoscaler
+
+controlplane autoscaler/vertical-pod-autoscaler on  master via 🐹 ➜     ./hack/vpa-up.sh
+HEAD is now at 352365899 Merge pull request #10058 from adrianmoisey/vpa-release-1.7.1
+customresourcedefinition.apiextensions.k8s.io/verticalpodautoscalercheckpoints.autoscaling.k8s.io configured
+customresourcedefinition.apiextensions.k8s.io/verticalpodautoscalers.autoscaling.k8s.io configured
+clusterrole.rbac.authorization.k8s.io/system:metrics-reader unchanged
+clusterrole.rbac.authorization.k8s.io/system:vpa-actor configured
+clusterrole.rbac.authorization.k8s.io/system:vpa-status-actor unchanged
+clusterrole.rbac.authorization.k8s.io/system:vpa-checkpoint-actor unchanged
+clusterrole.rbac.authorization.k8s.io/system:evictioner unchanged
+clusterrole.rbac.authorization.k8s.io/system:vpa-updater-in-place created
+clusterrolebinding.rbac.authorization.k8s.io/system:vpa-updater-in-place-binding created
+clusterrolebinding.rbac.authorization.k8s.io/system:metrics-reader unchanged
+clusterrolebinding.rbac.authorization.k8s.io/system:vpa-actor unchanged
+clusterrolebinding.rbac.authorization.k8s.io/system:vpa-status-actor unchanged
+clusterrolebinding.rbac.authorization.k8s.io/system:vpa-checkpoint-actor unchanged
+clusterrole.rbac.authorization.k8s.io/system:vpa-target-reader unchanged
+clusterrolebinding.rbac.authorization.k8s.io/system:vpa-target-reader-binding unchanged
+clusterrolebinding.rbac.authorization.k8s.io/system:vpa-evictioner-binding unchanged
+serviceaccount/vpa-admission-controller unchanged
+serviceaccount/vpa-recommender unchanged
+serviceaccount/vpa-updater unchanged
+clusterrole.rbac.authorization.k8s.io/system:vpa-admission-controller configured
+clusterrolebinding.rbac.authorization.k8s.io/system:vpa-admission-controller unchanged
+clusterrole.rbac.authorization.k8s.io/system:vpa-status-reader unchanged
+clusterrolebinding.rbac.authorization.k8s.io/system:vpa-status-reader-binding unchanged
+role.rbac.authorization.k8s.io/system:leader-locking-vpa-updater created
+rolebinding.rbac.authorization.k8s.io/system:leader-locking-vpa-updater created
+role.rbac.authorization.k8s.io/system:leader-locking-vpa-recommender created
+rolebinding.rbac.authorization.k8s.io/system:leader-locking-vpa-recommender created
+deployment.apps/vpa-updater created
+deployment.apps/vpa-recommender created
+Generating certs for the VPA Admission Controller in /tmp/vpa-certs.
+Certificate request self-signature ok
+subject=CN = vpa-webhook.kube-system.svc
+Uploading certs to the cluster.
+secret/vpa-tls-certs created
+Deleting /tmp/vpa-certs.
+service/vpa-webhook created
+deployment.apps/vpa-admission-controller created
+service/vpa-webhook unchanged
+
+controlplane autoscaler/vertical-pod-autoscaler on  HEAD (3523658) via 🐹 ➜  
+
+controlplane autoscaler/vertical-pod-autoscaler on  HEAD (3523658) via 🐹 ➜  cd /root/
+
+controlplane ~ ➜  k get crds -n kube-system 
+NAME                                                  CREATED AT
+verticalpodautoscalercheckpoints.autoscaling.k8s.io   2026-09-06T12:08:20Z
+verticalpodautoscalers.autoscaling.k8s.io             2026-09-06T12:08:20Z
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get deployments.apps -n kube-system 
+NAME                       READY   UP-TO-DATE   AVAILABLE   AGE
+coredns                    2/2     2            2           64m
+vpa-admission-controller   1/1     1            1           81s
+vpa-recommender            1/1     1            1           81s
+vpa-updater                1/1     1            1           81s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  ls -ltr
+total 64
+-rw-r--r--  1 root root  6719 Sep  3 05:54 vpa-rbac.yml
+-rw-r--r--  1 root root 40169 Sep  3 05:54 vpa-crds.yml
+-rw-r--r--  1 root root  1428 Sep  3 05:54 flask-app.yml
+drwxr-xr-x 12 root root  4096 Sep  6 12:11 autoscaler
+-rw-------  1 root root  1704 Sep  6 12:12 tls.key
+-rw-r--r--  1 root root  1155 Sep  6 12:12 tls.crt
+
+controlplane ~ ➜  k apply -f flask-app.yml 
+deployment.apps/flask-app created
+service/flask-app-service created
+verticalpodautoscaler.autoscaling.k8s.io/flask-app created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get pods 
+NAME                         READY   STATUS    RESTARTS   AGE
+flask-app-8676bb879b-w2l8p   1/1     Running   0          12s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get deployments.apps 
+NAME        READY   UP-TO-DATE   AVAILABLE   AGE
+flask-app   1/1     1            1           18s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get replicasets.apps 
+NAME                   DESIRED   CURRENT   READY   AGE
+flask-app-8676bb879b   1         1         1       45s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get pods -n kube-system 
+NAME                                       READY   STATUS    RESTARTS   AGE
+coredns-6f6c7df987-r5pd6                   1/1     Running   0          71m
+coredns-6f6c7df987-wt9qk                   1/1     Running   0          71m
+etcd-controlplane                          1/1     Running   0          71m
+kube-apiserver-controlplane                1/1     Running   0          71m
+kube-controller-manager-controlplane       1/1     Running   0          71m
+kube-proxy-74j54                           1/1     Running   0          70m
+kube-proxy-l9kxx                           1/1     Running   0          71m
+kube-scheduler-controlplane                1/1     Running   0          71m
+vpa-admission-controller-59ddd78c9-fbqn8   1/1     Running   0          8m31s
+vpa-recommender-5f9559c6d6-96x57           1/1     Running   0          8m31s
+vpa-updater-8b8ddb9d9-7blhf                1/1     Running   0          8m31s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k logs vpa-updater-8b8ddb9d9-7blhf | grep -i kube-system
+error: error from server (NotFound): pods "vpa-updater-8b8ddb9d9-7blhf" not found in namespace "default"
+
+controlplane ~ ✖ k events vpa-updater-8b8ddb9d9-7blhf | grep -i kube-system
+
+controlplane ~ ✖ 
+
+controlplane ~ ✖ k get pods
+NAME                         READY   STATUS    RESTARTS   AGE
+flask-app-8676bb879b-w2l8p   1/1     Running   0          9m11s
+
+controlplane ~ ➜  k logs flask-app-8676bb879b-w2l8p 
+ * Serving Flask app 'app'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://172.17.1.5:8080
+Press CTRL+C to quit
+
+controlplane ~ ➜  k logs vpa-updater-8b8ddb9d9-7blhf -n kube-system | grep -i flask
+I0906 12:13:59.539664       1 pods_restriction_factory.go:202] "Too few replicas" kind="ReplicaSet" object="default/flask-app-8676bb879b" livePods=1 requiredPods=2 globalMinReplicas=2
+I0906 12:14:59.540266       1 pods_restriction_factory.go:202] "Too few replicas" kind="ReplicaSet" object="default/flask-app-8676bb879b" livePods=1 requiredPods=2 globalMinReplicas=2
+I0906 12:15:59.541082       1 pods_restriction_factory.go:202] "Too few replicas" kind="ReplicaSet" object="default/flask-app-8676bb879b" livePods=1 requiredPods=2 globalMinReplicas=2
+I0906 12:16:59.540447       1 pods_restriction_factory.go:202] "Too few replicas" kind="ReplicaSet" object="default/flask-app-8676bb879b" livePods=1 requiredPods=2 globalMinReplicas=2
+I0906 12:17:59.541777       1 pods_restriction_factory.go:202] "Too few replicas" kind="ReplicaSet" object="default/flask-app-8676bb879b" livePods=1 requiredPods=2 globalMinReplicas=2
+I0906 12:18:59.539801       1 pods_restriction_factory.go:202] "Too few replicas" kind="ReplicaSet" object="default/flask-app-8676bb879b" livePods=1 requiredPods=2 globalMinReplicas=2
+I0906 12:19:59.540874       1 pods_restriction_factory.go:202] "Too few replicas" kind="ReplicaSet" object="default/flask-app-8676bb879b" livePods=1 requiredPods=2 globalMinReplicas=2
+I0906 12:20:59.540586       1 pods_restriction_factory.go:202] "Too few replicas" kind="ReplicaSet" object="default/flask-app-8676bb879b" livePods=1 requiredPods=2 globalMinReplicas=2
+I0906 12:21:59.540282       1 pods_restriction_factory.go:202] "Too few replicas" kind="ReplicaSet" object="default/flask-app-8676bb879b" livePods=1 requiredPods=2 globalMinReplicas=2
+I0906 12:22:59.540850       1 pods_restriction_factory.go:202] "Too few replicas" kind="ReplicaSet" object="default/flask-app-8676bb879b" livePods=1 requiredPods=2 globalMinReplicas=2
+I0906 12:23:59.539429       1 pods_restriction_factory.go:202] "Too few replicas" kind="ReplicaSet" object="default/flask-app-8676bb879b" livePods=1 requiredPods=2 globalMinReplicas=2
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get pods
+NAME                         READY   STATUS    RESTARTS   AGE
+flask-app-8676bb879b-w2l8p   1/1     Running   0          10m
+
+controlplane ~ ➜  k get deployments.apps
+NAME        READY   UP-TO-DATE   AVAILABLE   AGE
+flask-app   1/1     1            1           10m
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k scale deployment flask-app --replicas=3
+deployment.apps/flask-app scaled
+
+controlplane ~ ➜  k scale deployment flask-app --replicas=2
+deployment.apps/flask-app scaled
+
+controlplane ~ ➜  k get deployments.apps
+NAME        READY   UP-TO-DATE   AVAILABLE   AGE
+flask-app   2/2     2            2           11m
+
+controlplane ~ ➜  k get pods
+NAME                         READY   STATUS        RESTARTS   AGE
+flask-app-8676bb879b-496hv   1/1     Running       0          16s
+flask-app-8676bb879b-nd5bl   1/1     Running       0          16s
+flask-app-8676bb879b-w2l8p   1/1     Terminating   0          11m
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get pods
+NAME                         READY   STATUS        RESTARTS   AGE
+flask-app-8676bb879b-496hv   1/1     Running       0          20s
+flask-app-8676bb879b-nd5bl   1/1     Running       0          20s
+flask-app-8676bb879b-w2l8p   1/1     Terminating   0          11m
+
+controlplane ~ ➜  kubectl get deployment flask-app -o wide
+NAME        READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                          SELECTOR
+flask-app   2/2     2            2           11m   flask-app    kodekloud/flask-session-app:1   app=flask-app
+
+controlplane ~ ➜  kubectl get pods -l app=flask-app
+NAME                         READY   STATUS    RESTARTS   AGE
+flask-app-8676bb879b-496hv   1/1     Running   0          44s
+flask-app-8676bb879b-nd5bl   1/1     Running   0          44s
+
+controlplane ~ ➜  kubectl describe vpa flask-app
+Name:         flask-app
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+API Version:  autoscaling.k8s.io/v1
+Kind:         VerticalPodAutoscaler
+Metadata:
+  Creation Timestamp:  2026-09-06T12:13:51Z
+  Generation:          1
+  Resource Version:    6151
+  UID:                 7f3b639b-604b-4119-bd82-8da46cac9ffe
+Spec:
+  Resource Policy:
+    Container Policies:
+      Container Name:  *
+      Controlled Resources:
+        cpu
+        memory
+      Max Allowed:
+        Cpu:     1
+        Memory:  500Mi
+      Min Allowed:
+        Cpu:     100m
+        Memory:  100Mi
+  Target Ref:
+    API Version:  apps/v1
+    Kind:         Deployment
+    Name:         flask-app
+  Update Policy:
+    Eviction Requirements:
+      Change Requirement:  TargetHigherThanRequests
+      Resources:
+        cpu
+        memory
+    Update Mode:  Recreate
+Status:
+  Conditions:
+    Last Transition Time:  2026-09-06T12:13:59Z
+    Status:                True
+    Type:                  RecommendationProvided
+  Observed Generation:     1
+  Recommendation:
+    Container Recommendations:
+      Container Name:  flask-app
+      Lower Bound:
+        Cpu:     100m
+        Memory:  250Mi
+      Target:
+        Cpu:     100m
+        Memory:  250Mi
+      Uncapped Target:
+        Cpu:     25m
+        Memory:  250Mi
+      Upper Bound:
+        Cpu:     100m
+        Memory:  250Mi
+Events:
+  Type    Reason      Age   From         Message
+  ----    ------      ----  ----         -------
+  Normal  EvictedPod  46s   vpa-updater  VPA Updater evicted Pod flask-app-8676bb879b-w2l8p to apply resource recommendation.
+
+controlplane ~ ➜  
