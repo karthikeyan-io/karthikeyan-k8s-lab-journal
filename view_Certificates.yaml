@@ -1,0 +1,221 @@
+#######  View Certificate Details ###########
+
+#1 Identify the certificate file used for the kube-api server
+
+controlplane ~ ➜  cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep -i cert
+
+    - --tls-cert-file=/etc/kubernetes/pki/apiserver.crt   
+	
+#2 Identify the Certificate file used to authenticate kube-apiserver as a client to ETCD Server.
+
+--etcd-certfile=/etc/kubernetes/pki/apiserver-etcd-client.crt
+
+#3 Identify the key used to authenticate kubeapi-server to the kubelet server.
+    - --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key
+	
+#4 Identify the ETCD Server Certificate used to host ETCD server.
+controlplane ~ ➜  cat /etc/kubernetes/manifests/etcd.yaml | grep -i crt
+    - --cert-file=/etc/kubernetes/pki/etcd/server.crt
+
+controlplane ~ ➜  	
+
+#5 Identify the ETCD Server CA Root Certificate used to serve ETCD Server.
+
+ETCD can have its own CA. So this may be a different CA certificate than the one used by kube-api server.
+
+controlplane ~ ➜  cat /etc/kubernetes/manifests/etcd.yaml | grep -i crt
+
+    - --trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+
+
+#6 What is the Common Name (CN) configured on the Kube API Server Certificate?
+
+OpenSSL Syntax: openssl x509 -in file-path.crt -text -noout
+
+controlplane ~ ➜  cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep -i key
+    - --etcd-keyfile=/etc/kubernetes/pki/apiserver-etcd-client.key
+    - --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key
+    - --proxy-client-key-file=/etc/kubernetes/pki/front-proxy-client.key
+    - --service-account-key-file=/etc/kubernetes/pki/sa.pub
+    - --service-account-signing-key-file=/etc/kubernetes/pki/sa.key
+    - --tls-private-key-file=/etc/kubernetes/pki/apiserver.key
+	
+controlplane ~ ➜  openssl x509 -in /etc/kubernetes/pki/apiserver.crt -text -noout | grep -i -A2 CN
+        Issuer: CN = kubernetes
+        Validity
+            Not Before: Sep  7 01:49:35 2026 GMT
+--
+        Subject: CN = kube-apiserver
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+
+
+7# What is the name of the CA who issued the Kube API Server Certificate?
+
+controlplane ~ ➜  openssl x509 -in /etc/kubernetes/pki/apiserver.crt -text -noout | grep -i -A2 Issuer
+        Issuer: CN = kubernetes
+        Validity
+            Not Before: Sep  7 01:49:35 2026 GMT
+
+controlplane ~ ➜  
+
+#8 Which of the below alternate names is not configured on the Kube API Server Certificate?]
+
+controlplane ~ ✖ openssl x509 -in /etc/kubernetes/pki/apiserver.crt -text -noout | grep -i -A2 alternat
+            X509v3 Subject Alternative Name: 
+                DNS:controlplane, DNS:kubernetes, DNS:kubernetes.default, DNS:kubernetes.default.svc, DNS:kubernetes.default.svc.cluster.local, IP Address:172.20.0.1, IP Address:10.244.197.239
+    Signature Algorithm: sha256WithRSAEncryption
+
+controlplane ~ ➜  
+
+#9 What is the Common Name (CN) configured on the ETCD Server certificate?
+
+
+controlplane ~ ➜  openssl x509 -in /etc/kubernetes/pki/etcd/server.crt -text -noout | grep -i CN
+        Issuer: CN = etcd-ca
+        Subject: CN = controlplane
+
+controlplane ~ ➜  
+
+#10 How long, from the issued date, is the Kube-API Server Certificate valid for?
+
+File: /etc/kubernetes/pki/apiserver.crt
+
+controlplane ~ ✖ openssl x509 -in /etc/kubernetes/pki/apiserver.crt -text -noout
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 1059385718607152100 (0xeb3b1b2bdb383e4)
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN = kubernetes
+        Validity
+            Not Before: Sep  7 01:49:35 2026 GMT
+            Not After : Sep  7 01:54:35 2027 GMT
+			
+#11 How long, from the issued date, is the Root CA Certificate valid for?
+
+File: /etc/kubernetes/pki/ca.crt
+
+controlplane ~ ➜  openssl x509 -in /etc/kubernetes/pki/ca.crt -text -noout 
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 1269919266743705965 (0x119fa8d843aee16d)
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN = kubernetes
+        Validity
+            Not Before: Sep  7 01:49:35 2026 GMT
+            Not After : Sep  4 01:54:35 2036 GMT
+#12 Kubectl suddenly stops responding to your commands. Check it out! Someone recently modified the /etc/kubernetes/manifests/etcd.yaml file
+
+You are asked to investigate and fix the issue. Once you fix the issue wait for sometime for kubectl to respond. Check the logs of the ETCD container.
+
+controlplane ~ ➜  cat /etc/kubernetes/manifests/etcd.yaml | grep -i crt
+    - --cert-file=/etc/kubernetes/pki/etcd/server-certificate.crt
+    - --peer-cert-file=/etc/kubernetes/pki/etcd/peer.crt
+    - --peer-trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+    - --trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+
+controlplane ~ ➜  ls -ltr /etc/kubernetes/pki/etcd/server-certificate.crt
+ls: cannot access '/etc/kubernetes/pki/etcd/server-certificate.crt': No such file or directory
+
+controlplane ~ ✖ ls -ltr /etc/kubernetes/pki/etcd/
+total 32
+-rw------- 1 root root 1675 Sep  7 01:54 ca.key
+-rw-r--r-- 1 root root 1094 Sep  7 01:54 ca.crt
+-rw------- 1 root root 1675 Sep  7 01:54 server.key
+-rw-r--r-- 1 root root 1208 Sep  7 01:54 server.crt
+-rw------- 1 root root 1671 Sep  7 01:54 peer.key
+-rw-r--r-- 1 root root 1208 Sep  7 01:54 peer.crt
+-rw------- 1 root root 1679 Sep  7 01:54 healthcheck-client.key
+-rw-r--r-- 1 root root 1123 Sep  7 01:54 healthcheck-client.crt
+
+controlplane ~ ➜  vi /etc/kubernetes/manifests/etcd.yaml
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  cat /etc/kubernetes/manifests/etcd.yaml | grep -i crt
+    - --cert-file=/etc/kubernetes/pki/etcd/server.crt
+    - --peer-cert-file=/etc/kubernetes/pki/etcd/peer.crt
+    - --peer-trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+    - --trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+			
+#13 The kube-api server stopped again! Check it out. Inspect the kube-api server logs and identify the root cause and fix the issue.
+
+Run crictl ps -a command to identify the kube-api server container. Run crictl logs container-id command to view the logs.
+
+
+controlplane ~ ✖ k get po
+Get "https://controlplane:6443/api/v1/namespaces/default/pods?limit=500": net/http: TLS handshake timeout - error from a previous attempt: read tcp 10.244.147.144:51236->10.244.147.144:6443: read: connection reset by peer
+
+controlplane ~ ➜  crictl ps -a | grep kube-apiserver
+e4bf2662145b6       5c6acd67e9cd1       24 seconds ago      Exited              kube-apiserver            3                   80d13211d1b8c       kube-apiserver-controlplane            kube-system
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  crictl logs --tail=2  e4bf2662145b6
+W0907 03:19:04.704349       1 logging.go:55] [core] [Channel #2 SubChannel #5]grpc: addrConn.createTransport failed to connect to {Addr: "127.0.0.1:2379", ServerName: "127.0.0.1:2379", BalancerAttributes: {"<%!p(pickfirstleaf.managedByPickfirstKeyType={})>": "<%!p(bool=true)>" }}. Err: connection error: desc = "transport: authentication handshake failed: tls: failed to verify certificate: x509: certificate signed by unknown authority"
+F0907 03:19:08.091593       1 instance.go:233] Error creating leases: error creating storage factory: context deadline exceeded
+
+controlplane ~ ➜  
+
+ontrolplane ~ ➜  cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep -i crt
+    - --client-ca-file=/etc/kubernetes/pki/ca.crt
+    - --etcd-cafile=/etc/kubernetes/pki/ca.crt
+    - --etcd-certfile=/etc/kubernetes/pki/apiserver-etcd-client.crt
+    - --kubelet-client-certificate=/etc/kubernetes/pki/apiserver-kubelet-client.crt
+    - --proxy-client-cert-file=/etc/kubernetes/pki/front-proxy-client.crt
+    - --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt
+    - --tls-cert-file=/etc/kubernetes/pki/apiserver.crt
+
+controlplane ~ ➜  cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep -i key
+    - --etcd-keyfile=/etc/kubernetes/pki/apiserver-etcd-client.key
+    - --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key
+    - --proxy-client-key-file=/etc/kubernetes/pki/front-proxy-client.key
+    - --service-account-key-file=/etc/kubernetes/pki/sa.pub
+    - --service-account-signing-key-file=/etc/kubernetes/pki/sa.key
+    - --tls-private-key-file=/etc/kubernetes/pki/apiserver.key
+
+controlplane ~ ➜  crictl ps -a | grep kube-apiserver
+e4bf2662145b6       5c6acd67e9cd1       24 seconds ago      Exited              kube-apiserver            3                   80d13211d1b8c       kube-apiserver-controlplane            kube-system
+
+controlplane ~ ➜  
+
+
+
+W0907 03:35:44.877989       1 logging.go:55] [core] [Channel #7 SubChannel #9]grpc: addrConn.createTransport failed to connect to {Addr: "127.0.0.1:2379", ServerName: "127.0.0.1:2379", BalancerAttributes: {"<%!p(pickfirstleaf.managedByPickfirstKeyType={})>": "<%!p(bool=true)>" }}. Err: connection error: desc = "transport: authentication handshake failed: tls: failed to verify certificate: x509: certificate signed by unknown authority"
+W0907 03:35:46.640528       1 logging.go:55] [core] [Channel #1 SubChannel #6]grpc: addrConn.createTransport failed to connect to {Addr: "127.0.0.1:2379", ServerName: "127.0.0.1:2379", BalancerAttributes: {"<%!p(pickfirstleaf.managedByPickfirstKeyType={})>": "<%!p(bool=true)>" }}. Err: connection error: desc = "transport: authentication handshake failed: tls: failed to verify certificate: x509: certificate signed by unknown authority"
+F0907 03:35:49.411436       1 instance.go:233] Error creating leases: error creating storage factory: context deadline exceeded
+
+controlplane ~ ➜  cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep -i crt
+    - --client-ca-file=/etc/kubernetes/pki/ca.crt
+    - --etcd-cafile=/etc/kubernetes/pki/ca.crt
+    - --etcd-certfile=/etc/kubernetes/pki/apiserver-etcd-client.crt
+    - --kubelet-client-certificate=/etc/kubernetes/pki/apiserver-kubelet-client.crt
+    - --proxy-client-cert-file=/etc/kubernetes/pki/front-proxy-client.crt
+    - --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt
+    - --tls-cert-file=/etc/kubernetes/pki/apiserver.crt
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  vi /etc/kubernetes/manifests/kube-apiserver.yaml
+
+controlplane ~ ➜  cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep -i crt
+    - --client-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+    - --etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt
+    - --etcd-certfile=/etc/kubernetes/pki/apiserver-etcd-client.crt
+    - --kubelet-client-certificate=/etc/kubernetes/pki/apiserver-kubelet-client.crt
+    - --proxy-client-cert-file=/etc/kubernetes/pki/front-proxy-client.crt
+    - --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt
+    - --tls-cert-file=/etc/kubernetes/pki/apiserver.crt
+
+controlplane ~ ➜ 
+
+controlplane ~ ➜  crictl ps -a | grep kube-apiserver
+895465703df3a       5c6acd67e9cd1       11 seconds ago      Running             kube-apiserver            0                   29df068b19e70       kube-apiserver-controlplane            kube-system
+81654ad27dad6       5c6acd67e9cd1       3 minutes ago       Exited              kube-apiserver            5                   dda96b2fa4dcf       kube-apiserver-controlplane            kube-system
+
+controlplane ~ ➜  crictl ps -a | grep kube-apiserver
+895465703df3a       5c6acd67e9cd1       3 minutes ago       Running             kube-apiserver            0                   29df068b19e70       kube-apiserver-controlplane            kube-system
+
+controlplane ~ ➜ 
