@@ -1,0 +1,213 @@
+Create a CertificateSigningRequest object with the name akshay with the contents of the akshay.csr file
+
+As of kubernetes 1.19, the API to use for CSR is certificates.k8s.io/v1.
+
+Please note that an additional field called signerName should also be added when creating CSR. For client authentication 
+
+to the API server we will use the built-in signer kubernetes.io/kube-apiserver-client.
+
+-------------------------------------------------------------------------------------------------------------------------
+
+controlplane ~ ➜  kubectl get all -n kube-system 
+NAME                                       READY   STATUS    RESTARTS   AGE
+pod/coredns-6f6c7df987-7fxwx               1/1     Running   0          5m55s
+pod/coredns-6f6c7df987-brd7v               1/1     Running   0          5m55s
+pod/etcd-controlplane                      1/1     Running   0          6m4s
+pod/kube-apiserver-controlplane            1/1     Running   0          6m2s
+pod/kube-controller-manager-controlplane   1/1     Running   0          6m2s
+pod/kube-proxy-g49wm                       1/1     Running   0          5m55s
+pod/kube-scheduler-controlplane            1/1     Running   0          6m2s
+
+NAME               TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)                  AGE
+service/kube-dns   ClusterIP   172.20.0.10   <none>        53/UDP,53/TCP,9153/TCP   6m2s
+
+NAME                        DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+daemonset.apps/kube-proxy   1         1         1       1            1           kubernetes.io/os=linux   6m2s
+
+NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/coredns   2/2     2            2           6m2s
+
+NAME                                 DESIRED   CURRENT   READY   AGE
+replicaset.apps/coredns-6f6c7df987   2         2         2       5m55s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  ls -ltr
+total 8
+-rw------- 1 root root 1704 Sep  9 13:32 akshay.key
+-rw-r--r-- 1 root root  887 Sep  9 13:32 akshay.csr
+
+controlplane ~ ➜  cat akshay.key 
+-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCTI8wEOGM7+hnI
+18qpUh5FS7MdKbMM0jgQD5bJ/Wgb0Ey+lIXrkTdCM4Swu/7OF5lKZDYSanDVlQzt
+UOakMsyGInyCOl8bb3wABfpx4BuzNNFgaSa2ASWVUEisX/MLlG//b+1trnZKau9N
+WOp13VdFrgn3L4CqFNYo9LqcpMOHMQD9opjvF7+7D2L0u1HGBcL6t7QB+DqE3fKD
+8TKNdx8gZHUPxL+Kp4g3QVKFZebFHs1N39EDXm9gum7/cgeYVXJFCJ9wbv14XBrd
+Ki/o4MGxC6mO2/PIy6qhrPNG3ef6sPF5Cw9DG/6YboZthMw4+4YpVBhM3zvj/djy
+B42nsttxAgMBAAECggEAANddrgup/UCXR5ER9IZMDBf26qnk6eP6TtTd/Hfq0azk
+VsXH3xJ4mx6VtG0mE5oqMH+9Q5KbpExQE3vIznkdYaoeZYq3+ugiu1J4GFEAa4sC
+jvSZnxpc01tEXRrxK23noYbg7UV9TDyLXiPN4bW4eeUjuLJ1yn3TFyRwvDRLdhEz
+uj12nF+PwUYC1nHHsn0DDQa3OXDKmh/DrfbOMNZDEy4v6sXboY4VP9YLS4PuwCgY
+gqMwnOgXoKqqYspn1507PzIC+1/dnI8ZFYwAeJMUHeqk90NY4F+KqJyzzgrjCAdm
+gwRzF9BoMc/7clXr7rx5c8oth80GxXekLl+fwdtHuQKBgQDPQcHXzC/gs11Etwpr
+36Sr8WVg2z3YzXmNzgZmfzlEmsAkO92KvWqtXaIO8lm2TK4AJSERHN6oEY8P3kNW
+my37/ROKOOA03zagIrQPyiotLIkCHpWa54EoQLPAQLRlNX9SWH+QgRpLcqgWapXx
+qJjk+M/QgmF0N9yPS0Rc1nRECQKBgQC1vpgfyRb7Lq8cMXvaeOVuzSHCqXbbuZcG
+/CBD8evQ8I3YjiSWwf1PDIwv65gQL3GDTMLKptmYgQq2hgLY8UL/rq/8umitJqcp
+KHRZK/klh5sEMGGUbIUoO+Qa+SoO4imYPMgcSFcmiyNCyeP+3WwmqN6zArsaxUTM
+RkBh/g3GKQKBgAJJVG0gCIsvD2FZr5i/D98Bu7+Uy5rfsW6aDkIFN0mFd4cuzePg
+8RNWjBokHE9Bi03fGv1IV0B9aRmgtxd2gMxd32BP/lE3ATBFEb122n5DFoPaeIYL
+9cXO6Oy/Cf5v16a96TJb6kFY03fj1yGiXYVxJUHEnnScxScjim6HwyKZAoGAYAjU
+TYduk0+5zAYB0hGr+n5+ZmQxoC1TNqenTP/agc96xIFnqBndhhW1ReURtwu6yYyY
+KYk81a7qQERT4NqrcnuWFs9RXJ1eGwt7X1szDbe4G+CMz2cAfaAYCoC6zp6HKCCG
+BRvcoUtIWJRh21yZN1xoQOMihyTSE7bTcnRSRvECgYEAs4kYGPcfubSL2F2bWRh+
+7IQIy1tg33QyEJYsb6nhu6h6b1BKIHwLMjzHoCxqXZKRLFBceHVCLKuCLGUeuVOK
+9IZWJ3WjyqJKosbmgsTfgRMrl1lwxVVKj/FaN2PN5CilkRItD4XPwd7GMfQKnwWR
+4QcDMM/11QBpbisbhDBAuds=
+-----END PRIVATE KEY-----
+
+controlplane ~ ➜  cat akshay.csr 
+-----BEGIN CERTIFICATE REQUEST-----
+MIICVjCCAT4CAQAwETEPMA0GA1UEAwwGYWtzaGF5MIIBIjANBgkqhkiG9w0BAQEF
+AAOCAQ8AMIIBCgKCAQEAkyPMBDhjO/oZyNfKqVIeRUuzHSmzDNI4EA+Wyf1oG9BM
+vpSF65E3QjOEsLv+zheZSmQ2Empw1ZUM7VDmpDLMhiJ8gjpfG298AAX6ceAbszTR
+YGkmtgEllVBIrF/zC5Rv/2/tba52SmrvTVjqdd1XRa4J9y+AqhTWKPS6nKTDhzEA
+/aKY7xe/uw9i9LtRxgXC+re0Afg6hN3yg/EyjXcfIGR1D8S/iqeIN0FShWXmxR7N
+Td/RA15vYLpu/3IHmFVyRQifcG79eFwa3Sov6ODBsQupjtvzyMuqoazzRt3n+rDx
+eQsPQxv+mG6GbYTMOPuGKVQYTN874/3Y8geNp7LbcQIDAQABoAAwDQYJKoZIhvcN
+AQELBQADggEBAGHJaSR/8wNtZ/+7Jj+r5nI6Tl27s1ilCBw9ooGCJAptk2+rsywp
+rIA6T9hEhh4Sclpzb06qcsVbvlQ4GB3HoQZA/uhkuoaPzVrgmEAzdxvv+HZbaisT
+nd3ZCQX05CAZWDUkuZf9MGFjPNMormlMgI4gFz9r3E9mx5nhIE6bCRy7Ss1XiMdw
+ecbtddtan5iFbUbNZpm4Rhr/k4JY1aJJBEdc152mihaChcx2Xr3Nu49eKBvzzd68
+u8Egq72WXARKEf6Epha/wTtBZWz+ZaTRa6WCJgHcwJOhdaOtOdRFfiYGR2Li0fYc
+6+tn8lZuDdHZNxRmsz5ZadJIsiDeIoDejBk=
+-----END CERTIFICATE REQUEST-----
+
+controlplane ~ ➜  kubectl get certificatesigningrequests.certificates.k8s.io 
+NAME        AGE     SIGNERNAME                                    REQUESTOR                  REQUESTEDDURATION   CONDITION
+csr-hx227   9m21s   kubernetes.io/kube-apiserver-client-kubelet   system:node:controlplane   <none>              Approved,Issued
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get csr
+NAME        AGE   SIGNERNAME                                    REQUESTOR                  REQUESTEDDURATION   CONDITION
+csr-hx227   11m   kubernetes.io/kube-apiserver-client-kubelet   system:node:controlplane   <none>              Approved,Issued
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  vi akshay.csr.yaml
+
+controlplane ~ ➜  vi akshay.csr.yaml
+
+controlplane ~ ➜  vi akshay.csr.yaml
+
+controlplane ~ ➜  cat akshay.csr | base64 -w 0
+LS0tLS1CRUdJTiBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0KTUlJQ1ZqQ0NBVDRDQVFBd0VURVBNQTBHQTFVRUF3d0dZV3R6YUdGNU1JSUJJakFOQmdrcWhraUc5dzBCQVFFRgpBQU9DQVE4QU1JSUJDZ0tDQVFFQWt5UE1CRGhqTy9vWnlOZktxVkllUlV1ekhTbXpETkk0RUErV3lmMW9HOUJNCnZwU0Y2NUUzUWpPRXNMdit6aGVaU21RMkVtcHcxWlVNN1ZEbXBETE1oaUo4Z2pwZkcyOThBQVg2Y2VBYnN6VFIKWUdrbXRnRWxsVkJJckYvekM1UnYvMi90YmE1MlNtcnZUVmpxZGQxWFJhNEo5eStBcWhUV0tQUzZuS1REaHpFQQovYUtZN3hlL3V3OWk5THRSeGdYQytyZTBBZmc2aE4zeWcvRXlqWGNmSUdSMUQ4Uy9pcWVJTjBGU2hXWG14UjdOClRkL1JBMTV2WUxwdS8zSUhtRlZ5UlFpZmNHNzllRndhM1NvdjZPREJzUXVwanR2enlNdXFvYXp6UnQzbityRHgKZVFzUFF4dittRzZHYllUTU9QdUdLVlFZVE44NzQvM1k4Z2VOcDdMYmNRSURBUUFCb0FBd0RRWUpLb1pJaHZjTgpBUUVMQlFBRGdnRUJBR0hKYVNSLzh3TnRaLys3SmorcjVuSTZUbDI3czFpbENCdzlvb0dDSkFwdGsyK3JzeXdwCnJJQTZUOWhFaGg0U2NscHpiMDZxY3NWYnZsUTRHQjNIb1FaQS91aGt1b2FQelZyZ21FQXpkeHZ2K0haYmFpc1QKbmQzWkNRWDA1Q0FaV0RVa3VaZjlNR0ZqUE5Nb3JtbE1nSTRnRno5cjNFOW14NW5oSUU2YkNSeTdTczFYaU1kdwplY2J0ZGR0YW41aUZiVWJOWnBtNFJoci9rNEpZMWFKSkJFZGMxNTJtaWhhQ2hjeDJYcjNOdTQ5ZUtCdnp6ZDY4CnU4RWdxNzJXWEFSS0VmNkVwaGEvd1R0QlpXeitaYVRSYTZXQ0pnSGN3Sk9oZGFPdE9kUkZmaVlHUjJMaTBmWWMKNit0bjhsWnVEZEhaTnhSbXN6NVphZEpJc2lEZUlvRGVqQms9Ci0tLS0tRU5EIENFUlRJRklDQVRFIFJFUVVFU1QtLS0tLQo=
+controlplane ~ ➜  vi akshay.csr.yaml
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl apply -f akshay.csr.yaml 
+certificatesigningrequest.certificates.k8s.io/akshay created
+
+controlplane ~ ➜  kubectl get csr
+NAME        AGE   SIGNERNAME                                    REQUESTOR                  REQUESTEDDURATION   CONDITION
+akshay      9s    kubernetes.io/kube-apiserver-client           kubernetes-admin           24h                 Pending
+csr-hx227   16m   kubernetes.io/kube-apiserver-client-kubelet   system:node:controlplane   <none>              Approved,Issued
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl describe csr akshay
+Name:         akshay
+Labels:       <none>
+Annotations:  kubectl.kubernetes.io/last-applied-configuration={"apiVersion":"certificates.k8s.io/v1","kind":"CertificateSigningRequest","metadata":{"annotations":{},"name":"akshay"},"spec":{"expirationSeconds":86400,"request":"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0KTUlJQ1ZqQ0NBVDRDQVFBd0VURVBNQTBHQTFVRUF3d0dZV3R6YUdGNU1JSUJJakFOQmdrcWhraUc5dzBCQVFFRgpBQU9DQVE4QU1JSUJDZ0tDQVFFQWt5UE1CRGhqTy9vWnlOZktxVkllUlV1ekhTbXpETkk0RUErV3lmMW9HOUJNCnZwU0Y2NUUzUWpPRXNMdit6aGVaU21RMkVtcHcxWlVNN1ZEbXBETE1oaUo4Z2pwZkcyOThBQVg2Y2VBYnN6VFIKWUdrbXRnRWxsVkJJckYvekM1UnYvMi90YmE1MlNtcnZUVmpxZGQxWFJhNEo5eStBcWhUV0tQUzZuS1REaHpFQQovYUtZN3hlL3V3OWk5THRSeGdYQytyZTBBZmc2aE4zeWcvRXlqWGNmSUdSMUQ4Uy9pcWVJTjBGU2hXWG14UjdOClRkL1JBMTV2WUxwdS8zSUhtRlZ5UlFpZmNHNzllRndhM1NvdjZPREJzUXVwanR2enlNdXFvYXp6UnQzbityRHgKZVFzUFF4dittRzZHYllUTU9QdUdLVlFZVE44NzQvM1k4Z2VOcDdMYmNRSURBUUFCb0FBd0RRWUpLb1pJaHZjTgpBUUVMQlFBRGdnRUJBR0hKYVNSLzh3TnRaLys3SmorcjVuSTZUbDI3czFpbENCdzlvb0dDSkFwdGsyK3JzeXdwCnJJQTZUOWhFaGg0U2NscHpiMDZxY3NWYnZsUTRHQjNIb1FaQS91aGt1b2FQelZyZ21FQXpkeHZ2K0haYmFpc1QKbmQzWkNRWDA1Q0FaV0RVa3VaZjlNR0ZqUE5Nb3JtbE1nSTRnRno5cjNFOW14NW5oSUU2YkNSeTdTczFYaU1kdwplY2J0ZGR0YW41aUZiVWJOWnBtNFJoci9rNEpZMWFKSkJFZGMxNTJtaWhhQ2hjeDJYcjNOdTQ5ZUtCdnp6ZDY4CnU4RWdxNzJXWEFSS0VmNkVwaGEvd1R0QlpXeitaYVRSYTZXQ0pnSGN3Sk9oZGFPdE9kUkZmaVlHUjJMaTBmWWMKNit0bjhsWnVEZEhaTnhSbXN6NVphZEpJc2lEZUlvRGVqQms9Ci0tLS0tRU5EIENFUlRJRklDQVRFIFJFUVVFU1QtLS0tLQo=","signerName":"kubernetes.io/kube-apiserver-client","usages":["client auth"]}}
+
+CreationTimestamp:   Wed, 09 Sep 2026 13:44:04 +0000
+Requesting User:     kubernetes-admin
+Signer:              kubernetes.io/kube-apiserver-client
+Requested Duration:  24h
+Status:              Pending
+Subject:
+         Common Name:    akshay
+         Serial Number:  
+Events:  <none>
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl certificate approve akshay
+certificatesigningrequest.certificates.k8s.io/akshay approved
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get csr
+NAME        AGE   SIGNERNAME                                    REQUESTOR                  REQUESTEDDURATION   CONDITION
+akshay      95s   kubernetes.io/kube-apiserver-client           kubernetes-admin           24h                 Approved,Issued
+csr-hx227   18m   kubernetes.io/kube-apiserver-client-kubelet   system:node:controlplane   <none>              Approved,Issued
+
+controlplane ~ ➜  kubectl get csr
+NAME        AGE    SIGNERNAME                                    REQUESTOR                  REQUESTEDDURATION   CONDITION
+akshay      111s   kubernetes.io/kube-apiserver-client           kubernetes-admin           24h                 Approved,Issued
+csr-hx227   18m    kubernetes.io/kube-apiserver-client-kubelet   system:node:controlplane   <none>              Approved,Issued
+
+controlplane ~ ➜  kubectl get csr
+NAME          AGE     SIGNERNAME                                    REQUESTOR                  REQUESTEDDURATION   CONDITION
+agent-smith   18s     kubernetes.io/kube-apiserver-client           agent-x                    <none>              Pending
+akshay        2m15s   kubernetes.io/kube-apiserver-client           kubernetes-admin           24h                 Approved,Issued
+csr-hx227     19m     kubernetes.io/kube-apiserver-client-kubelet   system:node:controlplane   <none>              Approved,Issued
+
+controlplane ~ ➜  kubectl get csr agent-smith -o yaml
+apiVersion: certificates.k8s.io/v1
+kind: CertificateSigningRequest
+metadata:
+  creationTimestamp: "2026-09-09T13:46:01Z"
+  name: agent-smith
+  resourceVersion: "1894"
+  uid: c774c64e-1a99-439c-9fbf-8612d2a4cb91
+spec:
+  extra:
+    authentication.kubernetes.io/credential-id:
+    - X509SHA256=2e6a9c34a7130a5d84b594f81c9e019da192aa4852b3ecacff716abeca10db69
+  groups:
+  - system:masters
+  - system:authenticated
+  request: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0KTUlJQ1dEQ0NBVUFDQVFBd0V6RVJNQThHQTFVRUF3d0libVYzTFhWelpYSXdnZ0VpTUEwR0NTcUdTSWIzRFFFQgpBUVVBQTRJQkR3QXdnZ0VLQW9JQkFRRE8wV0pXK0RYc0FKU0lyanBObzV2UklCcGxuemcrNnhjOStVVndrS2kwCkxmQzI3dCsxZUVuT041TXVxOTlOZXZtTUVPbnJEVU8vdGh5VnFQMncyWE5JRFJYall5RjQwRmJtRCs1eld5Q0sKeTNCaWhoQjkzTUo3T3FsM1VUdlo4VEVMcXlhRGtuUmwvanYvU3hnWGtvazBBQlVUcFdNeDRCcFNpS2IwVSt0RQpJRjVueEF0dE1Wa0RQUTdOYmVaUkc0M2IrUVdsVkdSL3o2RFdPZkpuYmZlek90YUF5ZEdMVFpGQy93VHB6NTJrCkVjQ1hBd3FDaGpCTGt6MkJIUFI0Sjg5RDZYYjhrMzlwdTZqcHluZ1Y2dVAwdEliT3pwcU52MFkwcWRFWnB3bXcKajJxRUwraFpFV2trRno4MGxOTnR5VDVMeE1xRU5EQ25JZ3dDNEdaaVJHYnJBZ01CQUFHZ0FEQU5CZ2txaGtpRwo5dzBCQVFzRkFBT0NBUUVBUzlpUzZDMXV4VHVmNUJCWVNVN1FGUUhVemFsTnhBZFlzYU9SUlFOd0had0hxR2k0CmhPSzRhMnp5TnlpNDRPT2lqeWFENnRVVzhEU3hrcjhCTEs4S2czc3JSRXRKcWw1ckxaeTlMUlZyc0pnaEQ0Z1kKUDlOTCthRFJTeFJPVlNxQmFCMm5XZVlwTTVjSjVURjUzbGVzTlNOTUxRMisrUk1uakRRSjdqdVBFaWM4L2RoawpXcjJFVU02VWF3enlrcmRISW13VHYybWxNWTBSK0ROdFYxWWllKzBIOS9ZRWx0K0ZTR2poNUw1WVV2STFEcWl5CjRsM0UveTNxTDcxV2ZBY3VIM09zVnBVVW5RSVNNZFFzMHFXQ3NiRTU2Q0M1RGhQR1pJcFVibktVcEF3a2ErOEUKdndRMDdqRytocGtueG11RkFlWHhnVXdvZEFMYUo3anUvVERJY3c9PQotLS0tLUVORCBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0K
+  signerName: kubernetes.io/kube-apiserver-client
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth
+  username: agent-x
+status: {}
+
+controlplane ~ ➜  kubectl get csr
+NAME          AGE     SIGNERNAME                                    REQUESTOR                  REQUESTEDDURATION   CONDITION
+agent-smith   2m1s    kubernetes.io/kube-apiserver-client           agent-x                    <none>              Pending
+akshay        3m58s   kubernetes.io/kube-apiserver-client           kubernetes-admin           24h                 Approved,Issued
+csr-hx227     20m     kubernetes.io/kube-apiserver-client-kubelet   system:node:controlplane   <none>              Approved,Issued
+
+controlplane ~ ➜  kubectl certificate deny agent-smit
+Error from server (NotFound): certificatesigningrequests.certificates.k8s.io "agent-smit" not found
+
+controlplane ~ ✖ kubectl certificate deny agent-smith
+certificatesigningrequest.certificates.k8s.io/agent-smith denied
+
+controlplane ~ ➜  kubectl get csr
+NAME          AGE     SIGNERNAME                                    REQUESTOR                  REQUESTEDDURATION   CONDITION
+agent-smith   2m27s   kubernetes.io/kube-apiserver-client           agent-x                    <none>              Denied
+akshay        4m24s   kubernetes.io/kube-apiserver-client           kubernetes-admin           24h                 Approved,Issued
+csr-hx227     21m     kubernetes.io/kube-apiserver-client-kubelet   system:node:controlplane   <none>              Approved,Issued
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl delete csr agent-smith 
+certificatesigningrequest.certificates.k8s.io "agent-smith" deleted
+
+controlplane ~ ➜  kubectl get csr
+NAME        AGE     SIGNERNAME                                    REQUESTOR                  REQUESTEDDURATION   CONDITION
+akshay      4m54s   kubernetes.io/kube-apiserver-client           kubernetes-admin           24h                 Approved,Issued
+csr-hx227   21m     kubernetes.io/kube-apiserver-client-kubelet   system:node:controlplane   <none>              Approved,Issued
+
+controlplane ~ ➜  
