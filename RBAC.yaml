@@ -1,0 +1,482 @@
+RBAC check, Add user, create align user to provide the privilege and resouce access
+
+# Inspect the environment and identify the authorization modes configured on the cluster.
+------------------------------------------------------------------------------------
+
+controlplane ~ ➜  alias k=kubectl 
+
+controlplane ~ ➜  kubectl get ns 
+NAME              STATUS   AGE
+blue              Active   40s
+default           Active   8m55s
+kube-flannel      Active   8m48s
+kube-node-lease   Active   8m55s
+kube-public       Active   8m55s
+kube-system       Active   8m55s
+
+controlplane ~ ➜  kubectl get pods -n kube-system 
+NAME                                   READY   STATUS    RESTARTS   AGE
+coredns-6f6c7df987-drnvs               1/1     Running   0          8m58s
+coredns-6f6c7df987-tmdrx               1/1     Running   0          8m58s
+etcd-controlplane                      1/1     Running   0          9m4s
+kube-apiserver-controlplane            1/1     Running   0          9m4s
+kube-controller-manager-controlplane   1/1     Running   0          9m4s
+kube-proxy-4qd6g                       1/1     Running   0          8m58s
+kube-scheduler-controlplane            1/1     Running   0          9m4s
+
+controlplane ~ ➜  k get role
+No resources found in default namespace.
+
+controlplane ~ ➜  k describe pod kube-apiserver-controlplane -n kube-system
+Name:                 kube-apiserver-controlplane
+Namespace:            kube-system
+Priority:             2000001000
+Priority Class Name:  system-node-critical
+Node:                 controlplane/10.244.105.190
+Start Time:           Sat, 12 Sep 2026 14:42:39 +0000
+Labels:               component=kube-apiserver
+                      tier=control-plane
+Annotations:          kubeadm.kubernetes.io/kube-apiserver.advertise-address.endpoint: 10.244.105.190:6443
+                      kubernetes.io/config.hash: b1c4d8c258351130147a500d1e82fdcc
+                      kubernetes.io/config.mirror: b1c4d8c258351130147a500d1e82fdcc
+                      kubernetes.io/config.seen: 2026-09-12T14:42:25.269119213Z
+                      kubernetes.io/config.source: file
+Status:               Running
+SeccompProfile:       RuntimeDefault
+IP:                   10.244.105.190
+IPs:
+  IP:           10.244.105.190
+Controlled By:  Node/controlplane
+Containers:
+  kube-apiserver:
+    Container ID:  containerd://05a5248b8094492c2e046d5f6999e645e2707f8ac08e6e436e6ba28835acd07f
+    Image:         registry.k8s.io/kube-apiserver:v1.35.0
+    Image ID:      registry.k8s.io/kube-apiserver@sha256:32f98b308862e1cf98c900927d84630fb86a836a480f02752a779eb85c1489f3
+    Port:          6443/TCP (probe-port)
+    Host Port:     6443/TCP (probe-port)
+    Command:
+      kube-apiserver
+      --advertise-address=10.244.105.190
+      --allow-privileged=true
+      --authorization-mode=Node,RBAC
+      --client-ca-file=/etc/kubernetes/pki/ca.crt
+      --enable-admission-plugins=NodeRestriction
+      --enable-bootstrap-token-auth=true
+      --etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt
+      --etcd-certfile=/etc/kubernetes/pki/apiserver-etcd-client.crt
+      --etcd-keyfile=/etc/kubernetes/pki/apiserver-etcd-client.key
+      --etcd-servers=https://127.0.0.1:2379
+      --kubelet-client-certificate=/etc/kubernetes/pki/apiserver-kubelet-client.crt
+      --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key
+      --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+      --proxy-client-cert-file=/etc/kubernetes/pki/front-proxy-client.crt
+      --proxy-client-key-file=/etc/kubernetes/pki/front-proxy-client.key
+      --requestheader-allowed-names=front-proxy-client
+      --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt
+      --requestheader-extra-headers-prefix=X-Remote-Extra-
+      --requestheader-group-headers=X-Remote-Group
+      --requestheader-username-headers=X-Remote-User
+      --secure-port=6443
+      --service-account-issuer=https://kubernetes.default.svc.cluster.local
+      --service-account-key-file=/etc/kubernetes/pki/sa.pub
+      --service-account-signing-key-file=/etc/kubernetes/pki/sa.key
+      --service-cluster-ip-range=172.20.0.0/16
+      --tls-cert-file=/etc/kubernetes/pki/apiserver.crt
+      --tls-private-key-file=/etc/kubernetes/pki/apiserver.key
+    State:          Running
+      Started:      Sat, 12 Sep 2026 14:42:31 +0000
+    Ready:          True
+    Restart Count:  0
+    Requests:
+      cpu:        250m
+    Liveness:     http-get https://10.244.105.190:probe-port/livez delay=10s timeout=15s period=10s #success=1 #failure=8
+    Readiness:    http-get https://10.244.105.190:probe-port/readyz delay=0s timeout=15s period=1s #success=1 #failure=3
+    Startup:      http-get https://10.244.105.190:probe-port/livez delay=10s timeout=15s period=10s #success=1 #failure=24
+    Environment:  <none>
+    Mounts:
+      /etc/ca-certificates from etc-ca-certificates (ro)
+      /etc/kubernetes/pki from k8s-certs (ro)
+      /etc/ssl/certs from ca-certs (ro)
+      /usr/local/share/ca-certificates from usr-local-share-ca-certificates (ro)
+      /usr/share/ca-certificates from usr-share-ca-certificates (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  ca-certs:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/ssl/certs
+    HostPathType:  DirectoryOrCreate
+  etc-ca-certificates:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/ca-certificates
+    HostPathType:  DirectoryOrCreate
+  k8s-certs:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/kubernetes/pki
+    HostPathType:  DirectoryOrCreate
+  usr-local-share-ca-certificates:
+    Type:          HostPath (bare host directory volume)
+    Path:          /usr/local/share/ca-certificates
+    HostPathType:  DirectoryOrCreate
+  usr-share-ca-certificates:
+    Type:          HostPath (bare host directory volume)
+    Path:          /usr/share/ca-certificates
+    HostPathType:  DirectoryOrCreate
+QoS Class:         Burstable
+Node-Selectors:    <none>
+Tolerations:       :NoExecute op=Exists
+Events:
+  Type    Reason   Age    From     Message
+  ----    ------   ----   ----     -------
+  Normal  Pulled   10m    kubelet  spec.containers{kube-apiserver}: Container image "registry.k8s.io/kube-apiserver:v1.35.0" already present on machine and can be accessed by the pod
+  Normal  Created  10m    kubelet  spec.containers{kube-apiserver}: Container created
+  Normal  Started  9m59s  kubelet  spec.containers{kube-apiserver}: Container started
+
+controlplane ~ ➜  kubectl get role -A
+NAMESPACE     NAME                                             CREATED AT
+blue          developer                                        2026-09-12T14:50:47Z
+kube-public   kubeadm:bootstrap-signer-clusterinfo             2026-09-12T14:42:33Z
+kube-public   system:controller:bootstrap-signer               2026-09-12T14:42:33Z
+kube-system   extension-apiserver-authentication-reader        2026-09-12T14:42:33Z
+kube-system   kube-proxy                                       2026-09-12T14:42:39Z
+kube-system   kubeadm:kubelet-config                           2026-09-12T14:42:33Z
+kube-system   kubeadm:nodes-kubeadm-config                     2026-09-12T14:42:33Z
+kube-system   system::leader-locking-kube-controller-manager   2026-09-12T14:42:33Z
+kube-system   system::leader-locking-kube-scheduler            2026-09-12T14:42:33Z
+kube-system   system:controller:bootstrap-signer               2026-09-12T14:42:33Z
+kube-system   system:controller:cloud-provider                 2026-09-12T14:42:33Z
+kube-system   system:controller:token-cleaner                  2026-09-12T14:42:33Z
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get role -n kube-system 
+NAME                                             CREATED AT
+extension-apiserver-authentication-reader        2026-09-12T14:42:33Z
+kube-proxy                                       2026-09-12T14:42:39Z
+kubeadm:kubelet-config                           2026-09-12T14:42:33Z
+kubeadm:nodes-kubeadm-config                     2026-09-12T14:42:33Z
+system::leader-locking-kube-controller-manager   2026-09-12T14:42:33Z
+system::leader-locking-kube-scheduler            2026-09-12T14:42:33Z
+system:controller:bootstrap-signer               2026-09-12T14:42:33Z
+system:controller:cloud-provider                 2026-09-12T14:42:33Z
+system:controller:token-cleaner                  2026-09-12T14:42:33Z
+
+controlplane ~ ➜  kubectl describe role kube-proxy -n kube-system 
+Name:         kube-proxy
+Labels:       <none>
+Annotations:  <none>
+PolicyRule:
+  Resources   Non-Resource URLs  Resource Names  Verbs
+  ---------   -----------------  --------------  -----
+  configmaps  []                 [kube-proxy]    [get]
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get rolebindings.rbac.authorization.k8s.io -n kube-system
+NAME                                                ROLE                                                  AGE
+kube-proxy                                          Role/kube-proxy                                       12m
+kubeadm:kubelet-config                              Role/kubeadm:kubelet-config                           13m
+kubeadm:nodes-kubeadm-config                        Role/kubeadm:nodes-kubeadm-config                     13m
+system::extension-apiserver-authentication-reader   Role/extension-apiserver-authentication-reader        13m
+system::leader-locking-kube-controller-manager      Role/system::leader-locking-kube-controller-manager   13m
+system::leader-locking-kube-scheduler               Role/system::leader-locking-kube-scheduler            13m
+system:controller:bootstrap-signer                  Role/system:controller:bootstrap-signer               13m
+system:controller:cloud-provider                    Role/system:controller:cloud-provider                 13m
+system:controller:token-cleaner                     Role/system:controller:token-cleaner                  13m
+
+controlplane ~ ➜  k describe rolebindings.rbac.authorization.k8s.io kube-proxy -n kube-system
+Name:         kube-proxy
+Labels:       <none>
+Annotations:  <none>
+Role:
+  Kind:  Role
+  Name:  kube-proxy
+Subjects:
+  Kind   Name                                             Namespace
+  ----   ----                                             ---------
+  Group  system:bootstrappers:kubeadm:default-node-token  
+
+controlplane ~ ➜  kubectl get pods --as dev-user
+Error from server (Forbidden): pods is forbidden: User "dev-user" cannot list resource "pods" in API group "" in the namespace "default"
+
+controlplane ~ ✖ k get roles 
+No resources found in default namespace.
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k create role -h
+Create a role with single rule.
+
+Examples:
+  # Create a role named "pod-reader" that allows user to perform "get", "watch" and "list" on pods
+  kubectl create role pod-reader --verb=get --verb=list --verb=watch --resource=pods
+  
+  # Create a role named "pod-reader" with ResourceName specified
+  kubectl create role pod-reader --verb=get --resource=pods --resource-name=readablepod --resource-name=anotherpod
+  
+  # Create a role named "foo" with API Group specified
+  kubectl create role foo --verb=get,list,watch --resource=rs.apps
+  
+  # Create a role named "foo" with SubResource specified
+  kubectl create role foo --verb=get,list,watch --resource=pods,pods/status
+
+Options:
+    --allow-missing-template-keys=true:
+        If true, ignore any errors in templates when a field or map key is missing in the template. Only applies to
+        golang and jsonpath output formats.
+
+    --dry-run='none':
+        Must be "none", "server", or "client". If client strategy, only print the object that would be sent, without
+        sending it. If server strategy, submit server-side request without persisting the resource.
+
+    --field-manager='kubectl-create':
+        Name of the manager used to track field ownership.
+
+    -o, --output='':
+        Output format. One of: (json, yaml, kyaml, name, go-template, go-template-file, template, templatefile,
+        jsonpath, jsonpath-as-json, jsonpath-file).
+
+    --resource=[]:
+        Resource that the rule applies to
+
+    --resource-name=[]:
+        Resource in the white list that the rule applies to, repeat this flag for multiple items
+
+    --save-config=false:
+        If true, the configuration of current object will be saved in its annotation. Otherwise, the annotation will
+        be unchanged. This flag is useful when you want to perform kubectl apply on this object in the future.
+
+    --show-managed-fields=false:
+        If true, keep the managedFields when printing objects in JSON or YAML format.
+
+    --template='':
+        Template string or path to template file to use when -o=go-template, -o=go-template-file. The template format
+        is golang templates [http://golang.org/pkg/text/template/#pkg-overview].
+
+    --validate='strict':
+        Must be one of: strict (or true), warn, ignore (or false). "true" or "strict" will use a schema to validate
+        the input and fail the request if invalid. It will perform server side validation if ServerSideFieldValidation
+        is enabled on the api-server, but will fall back to less reliable client-side validation if not. "warn" will
+        warn about unknown or duplicate fields without blocking the request if server-side field validation is enabled
+        on the API server, and behave as "ignore" otherwise. "false" or "ignore" will not perform any schema
+        validation, silently dropping any unknown or duplicate fields.
+
+    --verb=[]:
+        Verb that applies to the resources contained in the rule
+
+Usage:
+  kubectl create role NAME --verb=verb --resource=resource.group/subresource [--resource-name=resourcename]
+[--dry-run=server|client|none] [options]
+
+Use "kubectl options" for a list of global command-line options (applies to all commands).
+
+controlplane ~ ➜  kubectl create role developer --verb=list,create,delete --resource=pods --namespace=default
+role.rbac.authorization.k8s.io/developer created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get role 
+NAME        CREATED AT
+developer   2026-09-12T14:58:36Z
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k create rolebinding -h
+Create a role binding for a particular role or cluster role.
+
+Examples:
+  # Create a role binding for user1, user2, and group1 using the admin cluster role
+  kubectl create rolebinding admin --clusterrole=admin --user=user1 --user=user2 --group=group1
+  
+  # Create a role binding for service account monitoring:sa-dev using the admin role
+  kubectl create rolebinding admin-binding --role=admin --serviceaccount=monitoring:sa-dev
+
+Options:
+    --allow-missing-template-keys=true:
+        If true, ignore any errors in templates when a field or map key is missing in the template. Only applies to
+        golang and jsonpath output formats.
+
+    --clusterrole='':
+        ClusterRole this RoleBinding should reference
+
+    --dry-run='none':
+        Must be "none", "server", or "client". If client strategy, only print the object that would be sent, without
+        sending it. If server strategy, submit server-side request without persisting the resource.
+
+    --field-manager='kubectl-create':
+        Name of the manager used to track field ownership.
+
+    --group=[]:
+        Groups to bind to the role. The flag can be repeated to add multiple groups.
+
+    -o, --output='':
+        Output format. One of: (json, yaml, kyaml, name, go-template, go-template-file, template, templatefile,
+        jsonpath, jsonpath-as-json, jsonpath-file).
+
+    --role='':
+        Role this RoleBinding should reference
+
+    --save-config=false:
+        If true, the configuration of current object will be saved in its annotation. Otherwise, the annotation will
+        be unchanged. This flag is useful when you want to perform kubectl apply on this object in the future.
+
+    --serviceaccount=[]:
+        Service accounts to bind to the role, in the format <namespace>:<name>. The flag can be repeated to add
+        multiple service accounts.
+
+    --show-managed-fields=false:
+        If true, keep the managedFields when printing objects in JSON or YAML format.
+
+    --template='':
+        Template string or path to template file to use when -o=go-template, -o=go-template-file. The template format
+        is golang templates [http://golang.org/pkg/text/template/#pkg-overview].
+
+    --user=[]:
+        Usernames to bind to the role. The flag can be repeated to add multiple users.
+
+    --validate='strict':
+        Must be one of: strict (or true), warn, ignore (or false). "true" or "strict" will use a schema to validate
+        the input and fail the request if invalid. It will perform server side validation if ServerSideFieldValidation
+        is enabled on the api-server, but will fall back to less reliable client-side validation if not. "warn" will
+        warn about unknown or duplicate fields without blocking the request if server-side field validation is enabled
+        on the API server, and behave as "ignore" otherwise. "false" or "ignore" will not perform any schema
+        validation, silently dropping any unknown or duplicate fields.
+
+Usage:
+  kubectl create rolebinding NAME --clusterrole=NAME|--role=NAME [--user=username] [--group=groupname]
+[--serviceaccount=namespace:serviceaccountname] [--dry-run=server|client|none] [options]
+
+Use "kubectl options" for a list of global command-line options (applies to all commands).
+
+controlplane ~ ➜  kubectl create rolebinding dev-user-binding --clusterrole=developer --user=dev-user
+rolebinding.rbac.authorization.k8s.io/dev-user-binding created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get role
+NAME        CREATED AT
+developer   2026-09-12T14:58:36Z
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k describe role developer
+Name:         developer
+Labels:       <none>
+Annotations:  <none>
+PolicyRule:
+  Resources  Non-Resource URLs  Resource Names  Verbs
+  ---------  -----------------  --------------  -----
+  pods       []                 []              [list create delete]
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get rolebindings.rbac.authorization.k8s.io 
+NAME               ROLE                    AGE
+dev-user-binding   ClusterRole/developer   25s
+
+controlplane ~ ➜  k describe rolebindings.rbac.authorization.k8s.io dev-user-binding
+Name:         dev-user-binding
+Labels:       <none>
+Annotations:  <none>
+Role:
+  Kind:  ClusterRole
+  Name:  developer
+Subjects:
+  Kind  Name      Namespace
+  ----  ----      ---------
+  User  dev-user  
+
+controlplane ~ ➜  k edit role developer -n blue
+role.rbac.authorization.k8s.io/developer edited
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k edit role developer -n blue -o yaml
+Edit cancelled, no changes made.
+
+controlplane ~ ➜  k edit role developer -n blue -o yaml > role_developer.yaml
+Vim: Warning: Output is not to a terminal
+
+[1]+  Stopped                 kubectl edit role developer -n blue -o yaml > role_developer.yaml
+
+
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: "2026-09-12T14:50:47Z"
+  name: developer
+  namespace: blue
+  resourceVersion: "2108"
+  uid: ad22bc6c-0979-4286-8fec-f798ebce4a0c
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - dark-blue-app
+  resources:
+  - pods
+  verbs:
+  - get
+  - watch
+  - create
+  - delete
+~         
+
+controlplane ~ ✦ ➜  
+
+controlplane ~ ✦ ➜  
+
+controlplane ~ ✦ ➜  k edit role developer -n blue
+role.rbac.authorization.k8s.io/developer edited
+
+controlplane ~ ✦ ➜  
+
+controlplane ~ ✦ ➜  k edit role developer -n blue
+Edit cancelled, no changes made.
+
+controlplane ~ ✦ ➜  k edit role developer -n blue
+Edit cancelled, no changes made.
+
+controlplane ~ ✦ ➜  
+
+
+
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: "2026-09-12T14:50:47Z"
+  name: developer
+  namespace: blue
+  resourceVersion: "2414"
+  uid: ad22bc6c-0979-4286-8fec-f798ebce4a0c
+rules:
+- apiGroups:
+  - apps
+  resourceNames:
+  - dark-blue-app
+  resources:
+  - pods
+  verbs:
+  - get
+  - watch
+  - create
+  - delete
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
