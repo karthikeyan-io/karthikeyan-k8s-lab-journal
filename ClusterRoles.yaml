@@ -1,0 +1,268 @@
+ClusterRoles Creation
+########################
+
+controlplane ~ ➜  k get clusterrole
+NAME                                                                   CREATED AT
+admin                                                                  2026-09-13T13:14:35Z
+cluster-admin                                                          2026-09-13T13:14:35Z
+clustercidrs-node                                                      2026-09-13T13:14:39Z
+edit                                                                   2026-09-13T13:14:35Z
+k3s-cloud-controller-manager                                           2026-09-13T13:14:39Z
+local-path-provisioner-role                                            2026-09-13T13:14:39Z
+system:aggregate-to-admin                                              2026-09-13T13:14:35Z
+system:aggregate-to-edit                                               2026-09-13T13:14:35Z
+system:aggregate-to-view                                               2026-09-13T13:14:35Z
+system:aggregated-metrics-reader                                       2026-09-13T13:14:39Z
+system:auth-delegator                                                  2026-09-13T13:14:35Z
+system:basic-user                                                      2026-09-13T13:14:35Z
+system:certificates.k8s.io:certificatesigningrequests:nodeclient       2026-09-13T13:14:35Z
+system:certificates.k8s.io:certificatesigningrequests:selfnodeclient   2026-09-13T13:14:35Z
+system:certificates.k8s.io:kube-apiserver-client-approver              2026-09-13T13:14:35Z
+system:certificates.k8s.io:kube-apiserver-client-kubelet-approver      2026-09-13T13:14:35Z
+system:certificates.k8s.io:kubelet-serving-approver                    2026-09-13T13:14:35Z
+system:certificates.k8s.io:legacy-unknown-approver                     2026-09-13T13:14:35Z
+system:controller:attachdetach-controller                              2026-09-13T13:14:35Z
+system:controller:certificate-controller                               2026-09-13T13:14:35Z
+system:controller:clusterrole-aggregation-controller                   2026-09-13T13:14:35Z
+system:controller:cronjob-controller                                   2026-09-13T13:14:35Z
+system:controller:daemon-set-controller                                2026-09-13T13:14:35Z
+system:controller:deployment-controller                                2026-09-13T13:14:35Z
+system:controller:disruption-controller                                2026-09-13T13:14:35Z
+system:controller:endpoint-controller                                  2026-09-13T13:14:35Z
+system:controller:endpointslice-controller                             2026-09-13T13:14:35Z
+system:controller:endpointslicemirroring-controller                    2026-09-13T13:14:35Z
+system:controller:ephemeral-volume-controller                          2026-09-13T13:14:35Z
+system:controller:expand-controller                                    2026-09-13T13:14:35Z
+system:controller:generic-garbage-collector                            2026-09-13T13:14:35Z
+system:controller:horizontal-pod-autoscaler                            2026-09-13T13:14:35Z
+system:controller:job-controller                                       2026-09-13T13:14:35Z
+system:controller:legacy-service-account-token-cleaner                 2026-09-13T13:14:35Z
+system:controller:namespace-controller                                 2026-09-13T13:14:35Z
+system:controller:node-controller                                      2026-09-13T13:14:35Z
+system:controller:persistent-volume-binder                             2026-09-13T13:14:35Z
+system:controller:pod-garbage-collector                                2026-09-13T13:14:35Z
+system:controller:pv-protection-controller                             2026-09-13T13:14:35Z
+system:controller:pvc-protection-controller                            2026-09-13T13:14:35Z
+system:controller:replicaset-controller                                2026-09-13T13:14:35Z
+system:controller:replication-controller                               2026-09-13T13:14:35Z
+system:controller:resource-claim-controller                            2026-09-13T13:14:35Z
+system:controller:resourcequota-controller                             2026-09-13T13:14:35Z
+system:controller:root-ca-cert-publisher                               2026-09-13T13:14:35Z
+system:controller:route-controller                                     2026-09-13T13:14:35Z
+system:controller:selinux-warning-controller                           2026-09-13T13:14:35Z
+system:controller:service-account-controller                           2026-09-13T13:14:35Z
+system:controller:service-cidrs-controller                             2026-09-13T13:14:35Z
+system:controller:service-controller                                   2026-09-13T13:14:35Z
+system:controller:statefulset-controller                               2026-09-13T13:14:35Z
+system:controller:ttl-after-finished-controller                        2026-09-13T13:14:35Z
+system:controller:ttl-controller                                       2026-09-13T13:14:35Z
+system:controller:validatingadmissionpolicy-status-controller          2026-09-13T13:14:35Z
+system:controller:volumeattributesclass-protection-controller          2026-09-13T13:14:35Z
+system:coredns                                                         2026-09-13T13:14:39Z
+system:discovery                                                       2026-09-13T13:14:35Z
+system:heapster                                                        2026-09-13T13:14:35Z
+system:k3s-controller                                                  2026-09-13T13:14:39Z
+system:kube-aggregator                                                 2026-09-13T13:14:35Z
+system:kube-controller-manager                                         2026-09-13T13:14:35Z
+system:kube-dns                                                        2026-09-13T13:14:35Z
+system:kube-scheduler                                                  2026-09-13T13:14:35Z
+system:kubelet-api-admin                                               2026-09-13T13:14:35Z
+system:metrics-server                                                  2026-09-13T13:14:39Z
+system:monitoring                                                      2026-09-13T13:14:35Z
+system:node                                                            2026-09-13T13:14:35Z
+system:node-bootstrapper                                               2026-09-13T13:14:35Z
+system:node-problem-detector                                           2026-09-13T13:14:35Z
+system:node-proxier                                                    2026-09-13T13:14:35Z
+system:persistent-volume-provisioner                                   2026-09-13T13:14:35Z
+system:public-info-viewer                                              2026-09-13T13:14:35Z
+system:service-account-issuer-discovery                                2026-09-13T13:14:35Z
+system:volume-scheduler                                                2026-09-13T13:14:35Z
+traefik-kube-system                                                    2026-09-13T13:14:59Z
+view                                                                   2026-09-13T13:14:35Z
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get clusterrolebindings.rbac.authorization.k8s.io 
+NAME                                                            ROLE                                                                        AGE
+cluster-admin                                                   ClusterRole/cluster-admin                                                   9m56s
+clustercidrs-node                                               ClusterRole/clustercidrs-node                                               9m52s
+helm-kube-system-traefik                                        ClusterRole/cluster-admin                                                   9m51s
+helm-kube-system-traefik-crd                                    ClusterRole/cluster-admin                                                   9m51s
+k3s-cloud-controller-manager                                    ClusterRole/k3s-cloud-controller-manager                                    9m52s
+k3s-cloud-controller-manager-auth-delegator                     ClusterRole/system:auth-delegator                                           9m52s
+kube-apiserver-kubelet-admin                                    ClusterRole/system:kubelet-api-admin                                        9m52s
+local-path-provisioner-bind                                     ClusterRole/local-path-provisioner-role                                     9m52s
+metrics-server:system:auth-delegator                            ClusterRole/system:auth-delegator                                           9m52s
+system:basic-user                                               ClusterRole/system:basic-user                                               9m56s
+system:controller:attachdetach-controller                       ClusterRole/system:controller:attachdetach-controller                       9m56s
+system:controller:certificate-controller                        ClusterRole/system:controller:certificate-controller                        9m56s
+system:controller:clusterrole-aggregation-controller            ClusterRole/system:controller:clusterrole-aggregation-controller            9m56s
+system:controller:cronjob-controller                            ClusterRole/system:controller:cronjob-controller                            9m56s
+system:controller:daemon-set-controller                         ClusterRole/system:controller:daemon-set-controller                         9m56s
+system:controller:deployment-controller                         ClusterRole/system:controller:deployment-controller                         9m56s
+system:controller:disruption-controller                         ClusterRole/system:controller:disruption-controller                         9m56s
+system:controller:endpoint-controller                           ClusterRole/system:controller:endpoint-controller                           9m56s
+system:controller:endpointslice-controller                      ClusterRole/system:controller:endpointslice-controller                      9m56s
+system:controller:endpointslicemirroring-controller             ClusterRole/system:controller:endpointslicemirroring-controller             9m56s
+system:controller:ephemeral-volume-controller                   ClusterRole/system:controller:ephemeral-volume-controller                   9m56s
+system:controller:expand-controller                             ClusterRole/system:controller:expand-controller                             9m56s
+system:controller:generic-garbage-collector                     ClusterRole/system:controller:generic-garbage-collector                     9m56s
+system:controller:horizontal-pod-autoscaler                     ClusterRole/system:controller:horizontal-pod-autoscaler                     9m56s
+system:controller:job-controller                                ClusterRole/system:controller:job-controller                                9m56s
+system:controller:legacy-service-account-token-cleaner          ClusterRole/system:controller:legacy-service-account-token-cleaner          9m56s
+system:controller:namespace-controller                          ClusterRole/system:controller:namespace-controller                          9m56s
+system:controller:node-controller                               ClusterRole/system:controller:node-controller                               9m56s
+system:controller:persistent-volume-binder                      ClusterRole/system:controller:persistent-volume-binder                      9m56s
+system:controller:pod-garbage-collector                         ClusterRole/system:controller:pod-garbage-collector                         9m56s
+system:controller:pv-protection-controller                      ClusterRole/system:controller:pv-protection-controller                      9m56s
+system:controller:pvc-protection-controller                     ClusterRole/system:controller:pvc-protection-controller                     9m56s
+system:controller:replicaset-controller                         ClusterRole/system:controller:replicaset-controller                         9m56s
+system:controller:replication-controller                        ClusterRole/system:controller:replication-controller                        9m56s
+system:controller:resource-claim-controller                     ClusterRole/system:controller:resource-claim-controller                     9m56s
+system:controller:resourcequota-controller                      ClusterRole/system:controller:resourcequota-controller                      9m56s
+system:controller:root-ca-cert-publisher                        ClusterRole/system:controller:root-ca-cert-publisher                        9m56s
+system:controller:route-controller                              ClusterRole/system:controller:route-controller                              9m56s
+system:controller:selinux-warning-controller                    ClusterRole/system:controller:selinux-warning-controller                    9m56s
+system:controller:service-account-controller                    ClusterRole/system:controller:service-account-controller                    9m56s
+system:controller:service-cidrs-controller                      ClusterRole/system:controller:service-cidrs-controller                      9m56s
+system:controller:service-controller                            ClusterRole/system:controller:service-controller                            9m56s
+system:controller:statefulset-controller                        ClusterRole/system:controller:statefulset-controller                        9m56s
+system:controller:ttl-after-finished-controller                 ClusterRole/system:controller:ttl-after-finished-controller                 9m56s
+system:controller:ttl-controller                                ClusterRole/system:controller:ttl-controller                                9m56s
+system:controller:validatingadmissionpolicy-status-controller   ClusterRole/system:controller:validatingadmissionpolicy-status-controller   9m56s
+system:controller:volumeattributesclass-protection-controller   ClusterRole/system:controller:volumeattributesclass-protection-controller   9m56s
+system:coredns                                                  ClusterRole/system:coredns                                                  9m52s
+system:discovery                                                ClusterRole/system:discovery                                                9m56s
+system:k3s-controller                                           ClusterRole/system:k3s-controller                                           9m52s
+system:kube-controller-manager                                  ClusterRole/system:kube-controller-manager                                  9m56s
+system:kube-dns                                                 ClusterRole/system:kube-dns                                                 9m56s
+system:kube-scheduler                                           ClusterRole/system:kube-scheduler                                           9m56s
+system:metrics-server                                           ClusterRole/system:metrics-server                                           9m52s
+system:monitoring                                               ClusterRole/system:monitoring                                               9m56s
+system:node                                                     ClusterRole/system:node                                                     9m56s
+system:node-proxier                                             ClusterRole/system:node-proxier                                             9m56s
+system:public-info-viewer                                       ClusterRole/system:public-info-viewer                                       9m56s
+system:service-account-issuer-discovery                         ClusterRole/system:service-account-issuer-discovery                         9m56s
+system:volume-scheduler                                         ClusterRole/system:volume-scheduler                                         9m56s
+traefik-kube-system                                             ClusterRole/traefik-kube-system                                             9m32s
+
+controlplane ~ ➜  k get clusterrole --no-header
+error: unknown flag: --no-header
+See 'kubectl get --help' for usage.
+
+controlplane ~ ✖ k get clusterrole | C -L
+-bash: C: command not found
+
+controlplane ~ ✖ k get clusterrole | wc -l
+77
+
+controlplane ~ ➜  k get clusterrolebindings.rbac.authorization.k8s.io | wc -l
+62
+
+controlplane ~ ➜  k get clusterrole | grep -i cluster-admin
+cluster-admin                                                          2026-09-13T13:14:35Z
+
+controlplane ~ ➜  k get clusterrolebindings.rbac.authorization.k8s.io | grep -i cluster-admin
+cluster-admin                                                   ClusterRole/cluster-admin                                                   12m
+helm-kube-system-traefik                                        ClusterRole/cluster-admin                                                   12m
+helm-kube-system-traefik-crd                                    ClusterRole/cluster-admin                                                   12m
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k describe clusterrole cluster-admin
+Name:         cluster-admin
+Labels:       kubernetes.io/bootstrapping=rbac-defaults
+Annotations:  rbac.authorization.kubernetes.io/autoupdate: true
+PolicyRule:
+  Resources  Non-Resource URLs  Resource Names  Verbs
+  ---------  -----------------  --------------  -----
+  *.*        []                 []              [*]
+             [*]                []              [*]
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k describe clusterrolebindings.rbac.authorization.k8s.io cluster-admin
+Name:         cluster-admin
+Labels:       kubernetes.io/bootstrapping=rbac-defaults
+Annotations:  rbac.authorization.kubernetes.io/autoupdate: true
+Role:
+  Kind:  ClusterRole
+  Name:  cluster-admin
+Subjects:
+  Kind   Name            Namespace
+  ----   ----            ---------
+  Group  system:masters  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k create clusterrole -h
+Create a cluster role.
+
+Examples:
+  # Create a cluster role named "pod-reader" that allows user to perform "get", "watch" and "list" on pods
+  kubectl create clusterrole pod-reader --verb=get,list,watch --resource=pods
+  
+  # Create a cluster role named "pod-reader" with ResourceName specified
+  kubectl create clusterrole pod-reader --verb=get --resource=pods --resource-name=readablepod
+--resource-name=anotherpod
+  
+  # Create a cluster role named "foo" with API Group specified
+  kubectl create clusterrole foo --verb=get,list,watch --resource=rs.apps
+  
+  # Create a cluster role named "foo" with SubResource specified
+  kubectl create clusterrole foo --verb=get,list,watch --resource=pods,pods/status
+  
+  # Create a cluster role name "foo" with NonResourceURL specified
+  kubectl create clusterrole "foo" --verb=get --non-resource-url=/logs/*
+  
+  # Create a cluster role name "monitoring" with AggregationRule specified
+  kubectl create clusterrole monitoring --aggregation-rule="rbac.example.com/aggregate-to-monitoring=true"
+
+
+
+controlplane ~ ➜  k create clusterrole michelle --verb=get,list,watch,create,delete --resource=nodes
+clusterrole.rbac.authorization.k8s.io/michelle created
+
+controlplane ~ ➜  k describe clusterrole michelle
+Name:         michelle
+Labels:       <none>
+Annotations:  <none>
+PolicyRule:
+  Resources  Non-Resource URLs  Resource Names  Verbs
+  ---------  -----------------  --------------  -----
+  nodes      []                 []              [get list watch create delete]
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k create clusterrolebinding -h
+Create a cluster role binding for a particular cluster role.
+
+Examples:
+  # Create a cluster role binding for user1, user2, and group1 using the cluster-admin cluster role
+  kubectl create clusterrolebinding cluster-admin --clusterrole=cluster-admin --user=user1 --user=user2 --group=group1
+
+
+controlplane ~ ➜  k create clusterrolebinding michelle-binding --clusterrole=michelle --user=michelle
+clusterrolebinding.rbac.authorization.k8s.io/michelle-binding created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k create clusterrole storage-admin --verb=get,list,watch,create,delete --resource=persistentvolumes,storageclasse
+s
+clusterrole.rbac.authorization.k8s.io/storage-admin created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k create clusterrolebinding michelle-storage-admin clusterrole=storage-admin --user=michelle
+error: required flag(s) "clusterrole" not set
+
+controlplane ~ ✖  kubectl create clusterrolebinding michelle-storage-admin --clusterrole=storage-admin --user=michelle
+clusterrolebinding.rbac.authorization.k8s.io/michelle-storage-admin created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
