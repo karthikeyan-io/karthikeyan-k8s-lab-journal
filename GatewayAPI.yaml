@@ -1,0 +1,606 @@
+-------------------------------------------------------------------------------
+ Gateway API
+-------------------------------------------------------------------------------
+The Gateway resource is used to define an instance of a Gateway API implementation in Kubernetes.
+It acts as an entry point for external traffic into the cluster.
+
+The GatewayClass resource defines a type of Gateway (i.e., the controller and its capabilities),
+but does not create an actual Gateway instance.
+To actually deploy a Gateway that routes traffic, you must create a Gateway resource.
+
+controlplane ~ ➜  kubectl get ns
+NAME              STATUS   AGE
+default           Active   5m44s
+kube-flannel      Active   5m41s
+kube-node-lease   Active   5m44s
+kube-public       Active   5m44s
+kube-system       Active   5m44s
+
+controlplane ~ ➜  kubectl get all
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   172.20.0.1   <none>        443/TCP   5m50s
+
+controlplane ~ ➜  kubectl api-resources | grep -i gateway
+
+controlplane ~ ✖ 
+
+controlplane ~ ✖ kubectl get crds
+No resources found
+
+controlplane ~ ➜  ## Install the Gateway API resources
+
+controlplane ~ ➜  kubectl kustomize "https://github.com/nginx/nginx-gateway-fabric/config/crd/gateway-api/standard?ref=v1.5.1" | kubectl apply -f -
+customresourcedefinition.apiextensions.k8s.io/gatewayclasses.gateway.networking.k8s.io created
+customresourcedefinition.apiextensions.k8s.io/gateways.gateway.networking.k8s.io created
+customresourcedefinition.apiextensions.k8s.io/grpcroutes.gateway.networking.k8s.io created
+customresourcedefinition.apiextensions.k8s.io/httproutes.gateway.networking.k8s.io created
+customresourcedefinition.apiextensions.k8s.io/referencegrants.gateway.networking.k8s.io created
+
+controlplane ~ ➜  kubectl api-resources | grep -i gateway
+gatewayclasses                      gc           gateway.networking.k8s.io/v1        false        GatewayClass
+gateways                            gtw          gateway.networking.k8s.io/v1        true         Gateway
+grpcroutes                                       gateway.networking.k8s.io/v1        true         GRPCRoute
+httproutes                                       gateway.networking.k8s.io/v1        true         HTTPRoute
+referencegrants                     refgrant     gateway.networking.k8s.io/v1beta1   true         ReferenceGrant
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  ## Deploy the NGINX Gateway Fabric CRDs
+
+controlplane ~ ➜  kubectl apply -f https://raw.githubusercontent.com/nginx/nginx-gateway-fabric/v1.6.1/deploy/crds.yaml
+customresourcedefinition.apiextensions.k8s.io/clientsettingspolicies.gateway.nginx.org created
+customresourcedefinition.apiextensions.k8s.io/nginxgateways.gateway.nginx.org created
+customresourcedefinition.apiextensions.k8s.io/nginxproxies.gateway.nginx.org created
+customresourcedefinition.apiextensions.k8s.io/observabilitypolicies.gateway.nginx.org created
+customresourcedefinition.apiextensions.k8s.io/snippetsfilters.gateway.nginx.org created
+customresourcedefinition.apiextensions.k8s.io/upstreamsettingspolicies.gateway.nginx.org created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get crds
+NAME                                         CREATED AT
+clientsettingspolicies.gateway.nginx.org     2026-09-16T13:28:58Z
+gatewayclasses.gateway.networking.k8s.io     2026-09-16T13:28:23Z
+gateways.gateway.networking.k8s.io           2026-09-16T13:28:23Z
+grpcroutes.gateway.networking.k8s.io         2026-09-16T13:28:23Z
+httproutes.gateway.networking.k8s.io         2026-09-16T13:28:23Z
+nginxgateways.gateway.nginx.org              2026-09-16T13:28:58Z
+nginxproxies.gateway.nginx.org               2026-09-16T13:28:58Z
+observabilitypolicies.gateway.nginx.org      2026-09-16T13:28:58Z
+referencegrants.gateway.networking.k8s.io    2026-09-16T13:28:23Z
+snippetsfilters.gateway.nginx.org            2026-09-16T13:28:58Z
+upstreamsettingspolicies.gateway.nginx.org   2026-09-16T13:28:58Z
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get ns 
+NAME              STATUS   AGE
+default           Active   9m48s
+kube-flannel      Active   9m45s
+kube-node-lease   Active   9m48s
+kube-public       Active   9m48s
+kube-system       Active   9m48s
+
+controlplane ~ ➜  ## Deploy NGINX Gateway Fabric
+
+controlplane ~ ➜  kubectl apply -f https://raw.githubusercontent.com/nginx/nginx-gateway-fabric/v1.6.1/deploy/nodeport/deploy.yaml
+namespace/nginx-gateway created
+serviceaccount/nginx-gateway created
+clusterrole.rbac.authorization.k8s.io/nginx-gateway created
+clusterrolebinding.rbac.authorization.k8s.io/nginx-gateway created
+configmap/nginx-includes-bootstrap created
+service/nginx-gateway created
+deployment.apps/nginx-gateway created
+gatewayclass.gateway.networking.k8s.io/nginx created
+nginxgateway.gateway.nginx.org/nginx-gateway-config created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get ns 
+NAME              STATUS   AGE
+default           Active   10m
+kube-flannel      Active   10m
+kube-node-lease   Active   10m
+kube-public       Active   10m
+kube-system       Active   10m
+nginx-gateway     Active   12s
+
+controlplane ~ ➜  kubectl get all -n nginx-gateway
+NAME                                 READY   STATUS    RESTARTS   AGE
+pod/nginx-gateway-685ffdcf84-fchx9   2/2     Running   0          23s
+
+NAME                    TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)                      AGE
+service/nginx-gateway   NodePort   172.20.9.116   <none>        80:32232/TCP,443:31637/TCP   24s
+
+NAME                            READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/nginx-gateway   1/1     1            1           23s
+
+NAME                                       DESIRED   CURRENT   READY   AGE
+replicaset.apps/nginx-gateway-685ffdcf84   1         1         1       23s
+
+controlplane ~ ➜  kubectl get sa -n nginx-gateway
+NAME            AGE
+default         42s
+nginx-gateway   42s
+
+controlplane ~ ➜  kubectl get clusterrole -n nginx-gateway
+NAME                                                                   CREATED AT
+admin                                                                  2026-09-16T13:19:53Z
+cluster-admin                                                          2026-09-16T13:19:53Z
+edit                                                                   2026-09-16T13:19:53Z
+flannel                                                                2026-09-16T13:19:55Z
+kubeadm:get-nodes                                                      2026-09-16T13:19:54Z
+nginx-gateway                                                          2026-09-16T13:29:57Z
+system:aggregate-to-admin                                              2026-09-16T13:19:53Z
+system:aggregate-to-edit                                               2026-09-16T13:19:53Z
+system:aggregate-to-view                                               2026-09-16T13:19:53Z
+system:auth-delegator                                                  2026-09-16T13:19:53Z
+system:basic-user                                                      2026-09-16T13:19:53Z
+system:certificates.k8s.io:certificatesigningrequests:nodeclient       2026-09-16T13:19:53Z
+system:certificates.k8s.io:certificatesigningrequests:selfnodeclient   2026-09-16T13:19:53Z
+system:certificates.k8s.io:kube-apiserver-client-approver              2026-09-16T13:19:53Z
+system:certificates.k8s.io:kube-apiserver-client-kubelet-approver      2026-09-16T13:19:53Z
+system:certificates.k8s.io:kubelet-serving-approver                    2026-09-16T13:19:53Z
+system:certificates.k8s.io:legacy-unknown-approver                     2026-09-16T13:19:53Z
+system:controller:attachdetach-controller                              2026-09-16T13:19:53Z
+system:controller:certificate-controller                               2026-09-16T13:19:53Z
+system:controller:clusterrole-aggregation-controller                   2026-09-16T13:19:53Z
+system:controller:cronjob-controller                                   2026-09-16T13:19:53Z
+system:controller:daemon-set-controller                                2026-09-16T13:19:53Z
+system:controller:deployment-controller                                2026-09-16T13:19:53Z
+system:controller:disruption-controller                                2026-09-16T13:19:53Z
+system:controller:endpoint-controller                                  2026-09-16T13:19:53Z
+system:controller:endpointslice-controller                             2026-09-16T13:19:53Z
+system:controller:endpointslicemirroring-controller                    2026-09-16T13:19:53Z
+system:controller:ephemeral-volume-controller                          2026-09-16T13:19:53Z
+system:controller:expand-controller                                    2026-09-16T13:19:53Z
+system:controller:generic-garbage-collector                            2026-09-16T13:19:53Z
+system:controller:horizontal-pod-autoscaler                            2026-09-16T13:19:53Z
+system:controller:job-controller                                       2026-09-16T13:19:53Z
+system:controller:legacy-service-account-token-cleaner                 2026-09-16T13:19:53Z
+system:controller:namespace-controller                                 2026-09-16T13:19:53Z
+system:controller:node-controller                                      2026-09-16T13:19:53Z
+system:controller:persistent-volume-binder                             2026-09-16T13:19:53Z
+system:controller:pod-garbage-collector                                2026-09-16T13:19:53Z
+system:controller:pv-protection-controller                             2026-09-16T13:19:53Z
+system:controller:pvc-protection-controller                            2026-09-16T13:19:53Z
+system:controller:replicaset-controller                                2026-09-16T13:19:53Z
+system:controller:replication-controller                               2026-09-16T13:19:53Z
+system:controller:resource-claim-controller                            2026-09-16T13:19:53Z
+system:controller:resourcequota-controller                             2026-09-16T13:19:53Z
+system:controller:root-ca-cert-publisher                               2026-09-16T13:19:53Z
+system:controller:route-controller                                     2026-09-16T13:19:53Z
+system:controller:selinux-warning-controller                           2026-09-16T13:19:53Z
+system:controller:service-account-controller                           2026-09-16T13:19:53Z
+system:controller:service-cidrs-controller                             2026-09-16T13:19:53Z
+system:controller:service-controller                                   2026-09-16T13:19:53Z
+system:controller:statefulset-controller                               2026-09-16T13:19:53Z
+system:controller:ttl-after-finished-controller                        2026-09-16T13:19:53Z
+system:controller:ttl-controller                                       2026-09-16T13:19:53Z
+system:controller:validatingadmissionpolicy-status-controller          2026-09-16T13:19:53Z
+system:controller:volumeattributesclass-protection-controller          2026-09-16T13:19:53Z
+system:coredns                                                         2026-09-16T13:19:54Z
+system:discovery                                                       2026-09-16T13:19:53Z
+system:heapster                                                        2026-09-16T13:19:53Z
+system:kube-aggregator                                                 2026-09-16T13:19:53Z
+system:kube-controller-manager                                         2026-09-16T13:19:53Z
+system:kube-dns                                                        2026-09-16T13:19:53Z
+system:kube-scheduler                                                  2026-09-16T13:19:53Z
+system:kubelet-api-admin                                               2026-09-16T13:19:53Z
+system:monitoring                                                      2026-09-16T13:19:53Z
+system:node                                                            2026-09-16T13:19:53Z
+system:node-bootstrapper                                               2026-09-16T13:19:53Z
+system:node-problem-detector                                           2026-09-16T13:19:53Z
+system:node-proxier                                                    2026-09-16T13:19:53Z
+system:persistent-volume-provisioner                                   2026-09-16T13:19:53Z
+system:public-info-viewer                                              2026-09-16T13:19:53Z
+system:service-account-issuer-discovery                                2026-09-16T13:19:53Z
+system:volume-scheduler                                                2026-09-16T13:19:53Z
+view                                                                   2026-09-16T13:19:53Z
+
+controlplane ~ ➜  kubectl get clusterrolebindings.rbac.authorization.k8s.io -n nginx-gateway
+NAME                                                            ROLE                                                                               AGE
+cluster-admin                                                   ClusterRole/cluster-admin                                                          11m
+flannel                                                         ClusterRole/flannel                                                                11m
+kubeadm:cluster-admins                                          ClusterRole/cluster-admin                                                          11m
+kubeadm:get-nodes                                               ClusterRole/kubeadm:get-nodes                                                      11m
+kubeadm:kubelet-bootstrap                                       ClusterRole/system:node-bootstrapper                                               11m
+kubeadm:node-autoapprove-bootstrap                              ClusterRole/system:certificates.k8s.io:certificatesigningrequests:nodeclient       11m
+kubeadm:node-autoapprove-certificate-rotation                   ClusterRole/system:certificates.k8s.io:certificatesigningrequests:selfnodeclient   11m
+kubeadm:node-proxier                                            ClusterRole/system:node-proxier                                                    11m
+nginx-gateway                                                   ClusterRole/nginx-gateway                                                          82s
+system:basic-user                                               ClusterRole/system:basic-user                                                      11m
+system:controller:attachdetach-controller                       ClusterRole/system:controller:attachdetach-controller                              11m
+system:controller:certificate-controller                        ClusterRole/system:controller:certificate-controller                               11m
+system:controller:clusterrole-aggregation-controller            ClusterRole/system:controller:clusterrole-aggregation-controller                   11m
+system:controller:cronjob-controller                            ClusterRole/system:controller:cronjob-controller                                   11m
+system:controller:daemon-set-controller                         ClusterRole/system:controller:daemon-set-controller                                11m
+system:controller:deployment-controller                         ClusterRole/system:controller:deployment-controller                                11m
+system:controller:disruption-controller                         ClusterRole/system:controller:disruption-controller                                11m
+system:controller:endpoint-controller                           ClusterRole/system:controller:endpoint-controller                                  11m
+system:controller:endpointslice-controller                      ClusterRole/system:controller:endpointslice-controller                             11m
+system:controller:endpointslicemirroring-controller             ClusterRole/system:controller:endpointslicemirroring-controller                    11m
+system:controller:ephemeral-volume-controller                   ClusterRole/system:controller:ephemeral-volume-controller                          11m
+system:controller:expand-controller                             ClusterRole/system:controller:expand-controller                                    11m
+system:controller:generic-garbage-collector                     ClusterRole/system:controller:generic-garbage-collector                            11m
+system:controller:horizontal-pod-autoscaler                     ClusterRole/system:controller:horizontal-pod-autoscaler                            11m
+system:controller:job-controller                                ClusterRole/system:controller:job-controller                                       11m
+system:controller:legacy-service-account-token-cleaner          ClusterRole/system:controller:legacy-service-account-token-cleaner                 11m
+system:controller:namespace-controller                          ClusterRole/system:controller:namespace-controller                                 11m
+system:controller:node-controller                               ClusterRole/system:controller:node-controller                                      11m
+system:controller:persistent-volume-binder                      ClusterRole/system:controller:persistent-volume-binder                             11m
+system:controller:pod-garbage-collector                         ClusterRole/system:controller:pod-garbage-collector                                11m
+system:controller:pv-protection-controller                      ClusterRole/system:controller:pv-protection-controller                             11m
+system:controller:pvc-protection-controller                     ClusterRole/system:controller:pvc-protection-controller                            11m
+system:controller:replicaset-controller                         ClusterRole/system:controller:replicaset-controller                                11m
+system:controller:replication-controller                        ClusterRole/system:controller:replication-controller                               11m
+system:controller:resource-claim-controller                     ClusterRole/system:controller:resource-claim-controller                            11m
+system:controller:resourcequota-controller                      ClusterRole/system:controller:resourcequota-controller                             11m
+system:controller:root-ca-cert-publisher                        ClusterRole/system:controller:root-ca-cert-publisher                               11m
+system:controller:route-controller                              ClusterRole/system:controller:route-controller                                     11m
+system:controller:selinux-warning-controller                    ClusterRole/system:controller:selinux-warning-controller                           11m
+system:controller:service-account-controller                    ClusterRole/system:controller:service-account-controller                           11m
+system:controller:service-cidrs-controller                      ClusterRole/system:controller:service-cidrs-controller                             11m
+system:controller:service-controller                            ClusterRole/system:controller:service-controller                                   11m
+system:controller:statefulset-controller                        ClusterRole/system:controller:statefulset-controller                               11m
+system:controller:ttl-after-finished-controller                 ClusterRole/system:controller:ttl-after-finished-controller                        11m
+system:controller:ttl-controller                                ClusterRole/system:controller:ttl-controller                                       11m
+system:controller:validatingadmissionpolicy-status-controller   ClusterRole/system:controller:validatingadmissionpolicy-status-controller          11m
+system:controller:volumeattributesclass-protection-controller   ClusterRole/system:controller:volumeattributesclass-protection-controller          11m
+system:coredns                                                  ClusterRole/system:coredns                                                         11m
+system:discovery                                                ClusterRole/system:discovery                                                       11m
+system:kube-controller-manager                                  ClusterRole/system:kube-controller-manager                                         11m
+system:kube-dns                                                 ClusterRole/system:kube-dns                                                        11m
+system:kube-scheduler                                           ClusterRole/system:kube-scheduler                                                  11m
+system:monitoring                                               ClusterRole/system:monitoring                                                      11m
+system:node                                                     ClusterRole/system:node                                                            11m
+system:node-proxier                                             ClusterRole/system:node-proxier                                                    11m
+system:public-info-viewer                                       ClusterRole/system:public-info-viewer                                              11m
+system:service-account-issuer-discovery                         ClusterRole/system:service-account-issuer-discovery                                11m
+system:volume-scheduler                                         ClusterRole/system:volume-scheduler                                                11m
+
+controlplane ~ ➜  kubectl get cm -n nginx-gateway
+NAME                       DATA   AGE
+kube-root-ca.crt           1      106s
+nginx-includes-bootstrap   1      106s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get gatewayclasses.gateway.networking.k8s.io -n nginx-gateway
+NAME    CONTROLLER                                   ACCEPTED   AGE
+nginx   gateway.nginx.org/nginx-gateway-controller   True       2m8s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl describe gatewayclasses.gateway.networking.k8s.io -n nginx-gateway
+Name:         nginx
+Namespace:    
+Labels:       app.kubernetes.io/instance=nginx-gateway
+              app.kubernetes.io/name=nginx-gateway
+              app.kubernetes.io/version=1.6.1
+Annotations:  <none>
+API Version:  gateway.networking.k8s.io/v1
+Kind:         GatewayClass
+Metadata:
+  Creation Timestamp:  2026-09-16T13:29:58Z
+  Generation:          1
+  Resource Version:    1350
+  UID:                 6353868c-3fd2-4508-9fc2-09fc0a762e72
+Spec:
+  Controller Name:  gateway.nginx.org/nginx-gateway-controller
+Status:
+  Conditions:
+    Last Transition Time:  2026-09-16T13:30:07Z
+    Message:               GatewayClass is accepted
+    Observed Generation:   1
+    Reason:                Accepted
+    Status:                True
+    Type:                  Accepted
+    Last Transition Time:  2026-09-16T13:30:07Z
+    Message:               Gateway API CRD versions are supported
+    Observed Generation:   1
+    Reason:                SupportedVersion
+    Status:                True
+    Type:                  SupportedVersion
+Events:                    <none>
+
+controlplane ~ ➜  kubectl get gateway -n nginx-gateway
+No resources found in nginx-gateway namespace.
+
+controlplane ~ ➜  kubectl get gateway -n nginx-gateway
+gatewayclasses.gateway.networking.k8s.io  gateways.gateway.networking.k8s.io        
+
+controlplane ~ ➜  kubectl get gateway -n nginx-gateway
+gatewayclasses.gateway.networking.k8s.io  gateways.gateway.networking.k8s.io        
+
+controlplane ~ ➜  kubectl get gateways.gateway.networking.k8s.io -n nginx-gateway
+No resources found in nginx-gateway namespace.
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get pods -n nginx-gateway
+NAME                             READY   STATUS    RESTARTS   AGE
+nginx-gateway-685ffdcf84-fchx9   2/2     Running   0          3m5s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get svc -n nginx-gateway nginx-gateway -o yaml
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app.kubernetes.io/instance":"nginx-gateway","app.kubernetes.io/name":"nginx-gateway","app.kubernetes.io/version":"1.6.1"},"name":"nginx-gateway","namespace":"nginx-gateway"},"spec":{"externalTrafficPolicy":"Local","ports":[{"name":"http","port":80,"protocol":"TCP","targetPort":80},{"name":"https","port":443,"protocol":"TCP","targetPort":443}],"selector":{"app.kubernetes.io/instance":"nginx-gateway","app.kubernetes.io/name":"nginx-gateway"},"type":"NodePort"}}
+  creationTimestamp: "2026-09-16T13:29:57Z"
+  labels:
+    app.kubernetes.io/instance: nginx-gateway
+    app.kubernetes.io/name: nginx-gateway
+    app.kubernetes.io/version: 1.6.1
+  name: nginx-gateway
+  namespace: nginx-gateway
+  resourceVersion: "1302"
+  uid: af2beabe-5973-4343-b0fa-fbc970f61ac1
+spec:
+  clusterIP: 172.20.9.116
+  clusterIPs:
+  - 172.20.9.116
+  externalTrafficPolicy: Local
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: http
+    nodePort: 32232
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  - name: https
+    nodePort: 31637
+    port: 443
+    protocol: TCP
+    targetPort: 443
+  selector:
+    app.kubernetes.io/instance: nginx-gateway
+    app.kubernetes.io/name: nginx-gateway
+  sessionAffinity: None
+  type: NodePort
+status:
+  loadBalancer: {}
+
+controlplane ~ ➜  kubectl patch svc nginx-gateway -n nginx-gateway --type='json' -p='[
+  {"op": "replace", "path": "/spec/ports/0/nodePort", "value": 30080},
+  {"op": "replace", "path": "/spec/ports/1/nodePort", "value": 30081}
+]'
+service/nginx-gateway patched
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get svc -n nginx-gateway nginx-gateway 
+NAME            TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)                      AGE
+nginx-gateway   NodePort   172.20.9.116   <none>        80:30080/TCP,443:30081/TCP   3m50s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  vi nginx-gateway.yaml
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl apply -f nginx-gateway.yaml 
+gateway.gateway.networking.k8s.io/nginx-gateway created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get gateways nginx-gateway 
+Error from server (NotFound): gateways.gateway.networking.k8s.io "nginx-gateway" not found
+
+controlplane ~ ✖ kubectl get gateways -n nginx-gateway 
+NAME            CLASS   ADDRESS   PROGRAMMED   AGE
+nginx-gateway   nginx             True         30s
+
+controlplane ~ ➜  kubectl describe  gateways -n nginx-gateway 
+Name:         nginx-gateway
+Namespace:    nginx-gateway
+Labels:       <none>
+Annotations:  <none>
+API Version:  gateway.networking.k8s.io/v1
+Kind:         Gateway
+Metadata:
+  Creation Timestamp:  2026-09-16T13:35:50Z
+  Generation:          1
+  Resource Version:    1980
+  UID:                 c87d8f3e-3289-476a-95e9-84f4995c7e0f
+Spec:
+  Gateway Class Name:  nginx
+  Listeners:
+    Allowed Routes:
+      Namespaces:
+        From:  All
+    Name:      http
+    Port:      80
+    Protocol:  HTTP
+Status:
+  Conditions:
+    Last Transition Time:  2026-09-16T13:35:50Z
+    Message:               Gateway is accepted
+    Observed Generation:   1
+    Reason:                Accepted
+    Status:                True
+    Type:                  Accepted
+    Last Transition Time:  2026-09-16T13:35:50Z
+    Message:               Gateway is programmed
+    Observed Generation:   1
+    Reason:                Programmed
+    Status:                True
+    Type:                  Programmed
+  Listeners:
+    Attached Routes:  0
+    Conditions:
+      Last Transition Time:  2026-09-16T13:35:50Z
+      Message:               Listener is accepted
+      Observed Generation:   1
+      Reason:                Accepted
+      Status:                True
+      Type:                  Accepted
+      Last Transition Time:  2026-09-16T13:35:50Z
+      Message:               Listener is programmed
+      Observed Generation:   1
+      Reason:                Programmed
+      Status:                True
+      Type:                  Programmed
+      Last Transition Time:  2026-09-16T13:35:50Z
+      Message:               All references are resolved
+      Observed Generation:   1
+      Reason:                ResolvedRefs
+      Status:                True
+      Type:                  ResolvedRefs
+      Last Transition Time:  2026-09-16T13:35:50Z
+      Message:               No conflicts
+      Observed Generation:   1
+      Reason:                NoConflicts
+      Status:                False
+      Type:                  Conflicted
+    Name:                    http
+    Supported Kinds:
+      Group:  gateway.networking.k8s.io
+      Kind:   HTTPRoute
+      Group:  gateway.networking.k8s.io
+      Kind:   GRPCRoute
+Events:       <none>
+
+controlplane ~ ➜  kubectl get pods
+NAME           READY   STATUS    RESTARTS   AGE
+frontend-app   1/1     Running   0          11s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get svc
+NAME           TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
+frontend-svc   ClusterIP   172.20.8.24   <none>        80/TCP    57s
+kubernetes     ClusterIP   172.20.0.1    <none>        443/TCP   17m
+
+controlplane ~ ➜  kubectl get all
+NAME               READY   STATUS    RESTARTS   AGE
+pod/frontend-app   1/1     Running   0          2m27s
+
+NAME                   TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
+service/frontend-svc   ClusterIP   172.20.8.24   <none>        80/TCP    2m27s
+service/kubernetes     ClusterIP   172.20.0.1    <none>        443/TCP   19m
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  vi frontend-svc-route.yaml
+
+controlplane ~ ➜  vi frontend-svc-route.yaml
+
+controlplane ~ ➜  cat frontend-svc-route.yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: frontend-route
+  namesapce: default
+spec:
+  parentRefs:
+  - name: nginx-gateway
+    namespace: nginx-gateway
+        sectionName: http
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: frontend-svc
+      port: 80
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl apply -f frontend-svc-route.yaml 
+error: error parsing frontend-svc-route.yaml: error converting YAML to JSON: yaml: line 10: found a tab character that violates indentation
+
+controlplane ~ ✖ vi frontend-svc-route.yaml
+
+controlplane ~ ➜  kubectl apply -f frontend-svc-route.yaml 
+error: error parsing frontend-svc-route.yaml: error converting YAML to JSON: yaml: line 10: found a tab character that violates indentation
+
+controlplane ~ ✖ vi frontend-svc-route.yaml
+
+controlplane ~ ➜  kubectl apply -f frontend-svc-route.yaml 
+error: error parsing frontend-svc-route.yaml: error converting YAML to JSON: yaml: line 10: found a tab character that violates indentation
+
+controlplane ~ ✖ vi frontend-svc-route.yaml
+
+controlplane ~ ➜  vi frontend-svc-route.yaml
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl apply -f frontend-svc-route.yaml 
+httproute.gateway.networking.k8s.io/frontend-route created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get httproutes
+NAME             HOSTNAMES   AGE
+frontend-route               21s
+
+controlplane ~ ➜  kubectl get httproutes frontend-route
+NAME             HOSTNAMES   AGE
+frontend-route               28s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl describe httproutes frontend-route
+Name:         frontend-route
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+API Version:  gateway.networking.k8s.io/v1
+Kind:         HTTPRoute
+Metadata:
+  Creation Timestamp:  2026-09-16T13:48:04Z
+  Generation:          1
+  Resource Version:    3318
+  UID:                 ff138c3b-880a-4df4-b9d3-0364ed73ff14
+Spec:
+  Parent Refs:
+    Group:         gateway.networking.k8s.io
+    Kind:          Gateway
+    Name:          nginx-gateway
+    Namespace:     nginx-gateway
+    Section Name:  http
+  Rules:
+    Backend Refs:
+      Group:   
+      Kind:    Service
+      Name:    frontend-svc
+      Port:    80
+      Weight:  1
+    Matches:
+      Path:
+        Type:   PathPrefix
+        Value:  /
+Status:
+  Parents:
+    Conditions:
+      Last Transition Time:  2026-09-16T13:48:04Z
+      Message:               The route is accepted
+      Observed Generation:   1
+      Reason:                Accepted
+      Status:                True
+      Type:                  Accepted
+      Last Transition Time:  2026-09-16T13:48:04Z
+      Message:               All references are resolved
+      Observed Generation:   1
+      Reason:                ResolvedRefs
+      Status:                True
+      Type:                  ResolvedRefs
+    Controller Name:         gateway.nginx.org/nginx-gateway-controller
+    Parent Ref:
+      Group:         gateway.networking.k8s.io
+      Kind:          Gateway
+      Name:          nginx-gateway
+      Namespace:     nginx-gateway
+      Section Name:  http
+Events:              <none>
+
+controlplane ~ ➜  
