@@ -1,0 +1,620 @@
+-------------------------------
+Security Contexts
+-------------------------------
+
+controlplane ~ ➜  kubectl get ns
+NAME              STATUS   AGE
+default           Active   7m18s
+kube-node-lease   Active   7m18s
+kube-public       Active   7m18s
+kube-system       Active   7m18s
+
+controlplane ~ ➜  kubectl get pods
+NAME             READY   STATUS    RESTARTS   AGE
+ubuntu-sleeper   1/1     Running   0          35s
+
+controlplane ~ ➜  kubectl exec ubuntu-sleeper -- whoami
+root
+
+controlplane ~ ➜  kubectl get pods ubuntu-sleeper -o yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: "2026-09-16T13:53:41Z"
+  generation: 1
+  name: ubuntu-sleeper
+  namespace: default
+  resourceVersion: "859"
+  uid: a8a153b6-af87-489a-9901-98b890b06138
+spec:
+  containers:
+  - command:
+    - sleep
+    - "4800"
+    image: ubuntu
+    imagePullPolicy: Always
+    name: ubuntu
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-nbzdb
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  nodeName: controlplane
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: kube-api-access-nbzdb
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-16T13:53:47Z"
+    observedGeneration: 1
+    status: "True"
+    type: PodReadyToStartContainers
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-16T13:53:41Z"
+    observedGeneration: 1
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-16T13:53:47Z"
+    observedGeneration: 1
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-16T13:53:47Z"
+    observedGeneration: 1
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-16T13:53:41Z"
+    observedGeneration: 1
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: containerd://400a961fee307516264274b5ed61a7a4692b7a7c9fa01d1f37d4ba64e95428bf
+    image: docker.io/library/ubuntu:latest
+    imageID: docker.io/library/ubuntu@sha256:cd21a4f68a617580279d4b091cb18e3af9fa8a87500665f0ae5f7f757d17d367
+    lastState: {}
+    name: ubuntu
+    ready: true
+    resources: {}
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2026-09-16T13:53:46Z"
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-nbzdb
+      readOnly: true
+      recursiveReadOnly: Disabled
+  hostIP: 10.244.127.202
+  hostIPs:
+  - ip: 10.244.127.202
+  observedGeneration: 1
+  phase: Running
+  podIP: 10.22.0.9
+  podIPs:
+  - ip: 10.22.0.9
+  qosClass: BestEffort
+  startTime: "2026-09-16T13:53:41Z"
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get pods ubuntu-sleeper -o yaml > ubuntu-sleeper.yaml
+
+controlplane ~ ➜  vi ubuntu-sleeper.yaml 
+
+controlplane ~ ➜  cat ubuntu-sleeper.yaml | grep -i -C4 user
+  resourceVersion: "859"
+  uid: a8a153b6-af87-489a-9901-98b890b06138
+spec:
+  securityContext:
+    runAsUser: 1010
+  containers:
+  - command:
+    - sleep
+    - "4800"
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get pods
+NAME             READY   STATUS    RESTARTS   AGE
+ubuntu-sleeper   1/1     Running   0          4m34s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl delete pod ubuntu-sleeper 
+pod "ubuntu-sleeper" deleted from default namespace
+
+controlplane ~ ➜  kubectl get pods
+No resources found in default namespace.
+
+controlplane ~ ➜  kubectl apply -f ubuntu-sleeper.yaml 
+pod/ubuntu-sleeper created
+
+controlplane ~ ➜  kubectl get pods
+NAME             READY   STATUS    RESTARTS   AGE
+ubuntu-sleeper   1/1     Running   0          4s
+
+controlplane ~ ➜  kubectl get pods ubuntu-sleeper -o yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Pod","metadata":{"annotations":{},"creationTimestamp":"2026-09-16T13:53:41Z","generation":1,"name":"ubuntu-sleeper","namespace":"default","resourceVersion":"859","uid":"a8a153b6-af87-489a-9901-98b890b06138"},"spec":{"containers":[{"command":["sleep","4800"],"image":"ubuntu","imagePullPolicy":"Always","name":"ubuntu","resources":{},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","volumeMounts":[{"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount","name":"kube-api-access-nbzdb","readOnly":true}]}],"dnsPolicy":"ClusterFirst","enableServiceLinks":true,"nodeName":"controlplane","preemptionPolicy":"PreemptLowerPriority","priority":0,"restartPolicy":"Always","schedulerName":"default-scheduler","securityContext":{},"serviceAccount":"default","serviceAccountName":"default","terminationGracePeriodSeconds":30,"tolerations":[{"effect":"NoExecute","key":"node.kubernetes.io/not-ready","operator":"Exists","tolerationSeconds":300},{"effect":"NoExecute","key":"node.kubernetes.io/unreachable","operator":"Exists","tolerationSeconds":300}],"volumes":[{"name":"kube-api-access-nbzdb","projected":{"defaultMode":420,"sources":[{"serviceAccountToken":{"expirationSeconds":3607,"path":"token"}},{"configMap":{"items":[{"key":"ca.crt","path":"ca.crt"}],"name":"kube-root-ca.crt"}},{"downwardAPI":{"items":[{"fieldRef":{"apiVersion":"v1","fieldPath":"metadata.namespace"},"path":"namespace"}]}}]}}]},"status":{"conditions":[{"lastProbeTime":null,"lastTransitionTime":"2026-09-16T13:53:47Z","observedGeneration":1,"status":"True","type":"PodReadyToStartContainers"},{"lastProbeTime":null,"lastTransitionTime":"2026-09-16T13:53:41Z","observedGeneration":1,"status":"True","type":"Initialized"},{"lastProbeTime":null,"lastTransitionTime":"2026-09-16T13:53:47Z","observedGeneration":1,"status":"True","type":"Ready"},{"lastProbeTime":null,"lastTransitionTime":"2026-09-16T13:53:47Z","observedGeneration":1,"status":"True","type":"ContainersReady"},{"lastProbeTime":null,"lastTransitionTime":"2026-09-16T13:53:41Z","observedGeneration":1,"status":"True","type":"PodScheduled"}],"containerStatuses":[{"containerID":"containerd://400a961fee307516264274b5ed61a7a4692b7a7c9fa01d1f37d4ba64e95428bf","image":"docker.io/library/ubuntu:latest","imageID":"docker.io/library/ubuntu@sha256:cd21a4f68a617580279d4b091cb18e3af9fa8a87500665f0ae5f7f757d17d367","lastState":{},"name":"ubuntu","ready":true,"resources":{},"restartCount":0,"started":true,"state":{"running":{"startedAt":"2026-09-16T13:53:46Z"}},"volumeMounts":[{"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount","name":"kube-api-access-nbzdb","readOnly":true,"recursiveReadOnly":"Disabled"}]}],"hostIP":"10.244.127.202","hostIPs":[{"ip":"10.244.127.202"}],"observedGeneration":1,"phase":"Running","podIP":"10.22.0.9","podIPs":[{"ip":"10.22.0.9"}],"qosClass":"BestEffort","startTime":"2026-09-16T13:53:41Z"}}
+  creationTimestamp: "2026-09-16T13:59:16Z"
+  generation: 1
+  name: ubuntu-sleeper
+  namespace: default
+  resourceVersion: "972"
+  uid: de1569c9-b5f4-4a61-9872-4996c6025f8d
+spec:
+  containers:
+  - command:
+    - sleep
+    - "4800"
+    image: ubuntu
+    imagePullPolicy: Always
+    name: ubuntu
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-nbzdb
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  nodeName: controlplane
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: kube-api-access-nbzdb
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-16T13:59:18Z"
+    observedGeneration: 1
+    status: "True"
+    type: PodReadyToStartContainers
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-16T13:59:16Z"
+    observedGeneration: 1
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-16T13:59:18Z"
+    observedGeneration: 1
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-16T13:59:18Z"
+    observedGeneration: 1
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-16T13:59:16Z"
+    observedGeneration: 1
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: containerd://f6e53a089380271567cb3fe8f53a120c86a8481de511a40bf40401693464707d
+    image: docker.io/library/ubuntu:latest
+    imageID: docker.io/library/ubuntu@sha256:cd21a4f68a617580279d4b091cb18e3af9fa8a87500665f0ae5f7f757d17d367
+    lastState: {}
+    name: ubuntu
+    ready: true
+    resources: {}
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2026-09-16T13:59:18Z"
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-nbzdb
+      readOnly: true
+      recursiveReadOnly: Disabled
+  hostIP: 10.244.127.202
+  hostIPs:
+  - ip: 10.244.127.202
+  observedGeneration: 1
+  phase: Running
+  podIP: 10.22.0.10
+  podIPs:
+  - ip: 10.22.0.10
+  qosClass: BestEffort
+  startTime: "2026-09-16T13:59:16Z"
+
+controlplane ~ ➜  :q!
+-bash: :q!: command not found
+
+controlplane ~ ✖ kubectl delete pod ubuntu-sleeper 
+pod "ubuntu-sleeper" deleted from default namespace
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  vi ubuntu-sleeper2.yaml 
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get pods
+No resources found in default namespace.
+
+controlplane ~ ➜  kubectl apply -f ubuntu-sleeper2.yaml 
+pod/ubuntu-sleeper created
+
+controlplane ~ ➜  kubectl get pods
+NAME             READY   STATUS    RESTARTS   AGE
+ubuntu-sleeper   1/1     Running   0          4s
+
+controlplane ~ ➜  kubectl get pods ubuntu-sleeper -o yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Pod","metadata":{"annotations":{},"name":"ubuntu-sleeper","namespace":"default"},"spec":{"containers":[{"command":["sleep","4800"],"image":"ubuntu","name":"ubuntu-sleeper"}],"securityContext":{"runAsUser":1010}}}
+  creationTimestamp: "2026-09-16T14:01:31Z"
+  generation: 1
+  name: ubuntu-sleeper
+  namespace: default
+  resourceVersion: "1030"
+  uid: 61f3a4ab-a811-4a94-918f-1e8c0764fa13
+spec:
+  containers:
+  - command:
+    - sleep
+    - "4800"
+    image: ubuntu
+    imagePullPolicy: Always
+    name: ubuntu-sleeper
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-8ldmb
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  nodeName: controlplane
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext:
+    runAsUser: 1010
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: kube-api-access-8ldmb
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-16T14:01:33Z"
+    observedGeneration: 1
+    status: "True"
+    type: PodReadyToStartContainers
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-16T14:01:31Z"
+    observedGeneration: 1
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-16T14:01:33Z"
+    observedGeneration: 1
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-16T14:01:33Z"
+    observedGeneration: 1
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-16T14:01:31Z"
+    observedGeneration: 1
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: containerd://854ca15fb48b5575abd37ce5c812ee142cb0ae87da695980bca0458c95dba073
+    image: docker.io/library/ubuntu:latest
+    imageID: docker.io/library/ubuntu@sha256:cd21a4f68a617580279d4b091cb18e3af9fa8a87500665f0ae5f7f757d17d367
+    lastState: {}
+    name: ubuntu-sleeper
+    ready: true
+    resources: {}
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2026-09-16T14:01:33Z"
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-8ldmb
+      readOnly: true
+      recursiveReadOnly: Disabled
+  hostIP: 10.244.127.202
+  hostIPs:
+  - ip: 10.244.127.202
+  observedGeneration: 1
+  phase: Running
+  podIP: 10.22.0.11
+  podIPs:
+  - ip: 10.22.0.11
+  qosClass: BestEffort
+  startTime: "2026-09-16T14:01:31Z"
+
+controlplane ~ ➜  kubectl get pods
+NAME             READY   STATUS    RESTARTS   AGE
+ubuntu-sleeper   1/1     Running   0          51s
+
+controlplane ~ ➜  vi multi-pod.yaml 
+
+controlplane ~ ➜  cat multi-pod.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: multi-pod
+spec:
+  securityContext:
+    runAsUser: 1001
+  containers:
+  -  image: ubuntu
+     name: web
+     command: ["sleep", "5000"]
+     securityContext:
+      runAsUser: 1002
+
+  -  image: ubuntu
+     name: sidecar
+     command: ["sleep", "5000"]
+
+
+controlplane ~ ➜  vi ubuntu-sleeper2.yaml 
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  cat ubuntu-sleeper2.yaml 
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubuntu-sleeper
+  namespace: default
+spec:
+  securityContext:      # Update securityContext
+    runAsUser: 1010
+  containers:
+  - command:
+    - sleep
+    - "4800"
+    image: ubuntu
+    name: ubuntu-sleeper
+    securityContext:        # Updated securityContext on container level
+      capabilities:
+        add: ["SYS_TIME"]
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get pod
+poddisruptionbudgets.policy  pods                         podtemplates                 
+
+controlplane ~ ➜  kubectl get pods 
+NAME             READY   STATUS    RESTARTS   AGE
+ubuntu-sleeper   1/1     Running   0          5m6s
+
+controlplane ~ ➜  kubectl delete pod ubuntu-sleeper
+pod "ubuntu-sleeper" deleted from default namespace
+
+controlplane ~ ➜  kubectl get pods 
+No resources found in default namespace.
+
+controlplane ~ ➜  cat ubuntu-sleeper2.yaml 
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubuntu-sleeper
+  namespace: default
+spec:
+  securityContext:      # Update securityContext
+    runAsUser: 1010
+  containers:
+  - command:
+    - sleep
+    - "4800"
+    image: ubuntu
+    name: ubuntu-sleeper
+    securityContext:        # Updated securityContext on container level
+      capabilities:
+        add: ["SYS_TIME"]
+
+controlplane ~ ➜  kubectl apply -f ubuntu-sleeper2.yaml 
+pod/ubuntu-sleeper created
+
+controlplane ~ ➜  kubectl get pods 
+NAME             READY   STATUS    RESTARTS   AGE
+ubuntu-sleeper   1/1     Running   0          5s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  vi ubuntu-sleeper2.yaml 
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl delete pod ubuntu-sleeper
+pod "ubuntu-sleeper" deleted from default namespace
+
+controlplane ~ ➜  kubectl get pods 
+No resources found in default namespace.
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  vi ubuntu-sleeper2.yaml 
+
+controlplane ~ ➜  cat ubuntu-sleeper2.yaml 
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubuntu-sleeper
+  namespace: default
+spec:
+  containers:
+  - command:
+    - sleep
+    - "4800"
+    image: ubuntu
+    name: ubuntu-sleeper
+    securityContext:        # Updated securityContext on container level
+      capabilities:
+        add: ["SYS_TIME"]
+
+controlplane ~ ➜  kubectl apply -f ubuntu-sleeper2.yaml 
+pod/ubuntu-sleeper created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  vi ubuntu-sleeper2.yaml 
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  cat ubuntu-sleeper2.yaml 
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubuntu-sleeper
+  namespace: default
+spec:
+  containers:
+  - command:
+    - sleep
+    - "4800"
+    image: ubuntu
+    name: ubuntu-sleeper
+    securityContext:        # Updated securityContext on container level
+      capabilities:
+        add: ["SYS_TIME", "NET_ADMIN"]
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl get pods 
+NAME             READY   STATUS    RESTARTS   AGE
+ubuntu-sleeper   1/1     Running   0          87s
+
+controlplane ~ ➜  kubectl delete pod ubuntu-sleeper
+pod "ubuntu-sleeper" deleted from default namespace
+
+controlplane ~ ➜  kubectl get pods 
+No resources found in default namespace.
+
+controlplane ~ ➜  kubectl apply -f  ubuntu-sleeper2.yaml 
+pod/ubuntu-sleeper created
+
+controlplane ~ ➜  kubectl get pods 
+NAME             READY   STATUS    RESTARTS   AGE
+ubuntu-sleeper   1/1     Running   0          3s
+
+controlplane ~ ➜  
