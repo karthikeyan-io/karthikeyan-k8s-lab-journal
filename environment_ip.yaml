@@ -1,0 +1,182 @@
+-------------------------
+Environment
+-------------------------
+controlplane ~ ➜  kubectl get nodes -A
+NAME           STATUS   ROLES           AGE   VERSION
+controlplane   Ready    control-plane   20m   v1.35.0
+node01         Ready    <none>          20m   v1.35.0
+
+controlplane ~ ➜  kubectl get nodes -A -o wide
+NAME           STATUS   ROLES           AGE   VERSION   INTERNAL-IP      EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
+controlplane   Ready    control-plane   20m   v1.35.0   10.244.83.140    <none>        Ubuntu 22.04.5 LTS   6.8.0-90-generic   containerd://1.7.22
+node01         Ready    <none>          20m   v1.35.0   10.244.197.210   <none>        Ubuntu 22.04.5 LTS   6.8.0-90-generic   containerd://1.7.22
+
+controlplane ~ ➜  ssh controlplane 
+The authenticity of host 'controlplane (10.244.83.140)' can't be established.
+ED25519 key fingerprint is SHA256:nCNQUiUMZdHW+otfu3+uVN05kzgzSJ6CzWfzg9mys1c.
+This host key is known by the following other names/addresses:
+    ~/.ssh/known_hosts:1: [hashed name]
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added 'controlplane' (ED25519) to the list of known hosts.
+root@controlplane's password: 
+Permission denied, please try again.
+root@controlplane's password: 
+
+
+controlplane ~ ✖ ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: tunl0@NONE: <NOARP> mtu 1480 qdisc noop state DOWN group default qlen 1000
+    link/ipip 0.0.0.0 brd 0.0.0.0
+4: eth0@if257940: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UP group default qlen 1000
+    link/ether be:32:53:fb:ba:d0 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 10.244.83.140/32 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::bc32:53ff:fefb:bad0/64 scope link 
+       valid_lft forever preferred_lft forever
+5: flannel.1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1400 qdisc noqueue state UNKNOWN group default 
+    link/ether 7a:69:33:81:14:f4 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.0/32 scope global flannel.1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::7869:33ff:fe81:14f4/64 scope link 
+       valid_lft forever preferred_lft forever
+6: cni0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1400 qdisc noqueue state UP group default qlen 1000
+    link/ether 0a:35:96:1b:39:6a brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/24 brd 172.17.0.255 scope global cni0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::835:96ff:fe1b:396a/64 scope link 
+       valid_lft forever preferred_lft forever
+7: veth742cc571@if3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1400 qdisc noqueue master cni0 state UP group default 
+    link/ether f2:55:d9:33:17:e3 brd ff:ff:ff:ff:ff:ff link-netns cni-225ebc5e-7375-8ba4-298d-bac67b537ebb
+    inet6 fe80::c47a:35ff:feb3:5ad2/64 scope link 
+       valid_lft forever preferred_lft forever
+8: vethd54c814d@if3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1400 qdisc noqueue master cni0 state UP group default 
+    link/ether fa:06:5e:ea:d0:c4 brd ff:ff:ff:ff:ff:ff link-netns cni-b8d43179-0e90-a949-3f80-64a8863486b3
+    inet6 fe80::1857:63ff:fe9b:8d9d/64 scope link 
+       valid_lft forever preferred_lft forever
+
+controlplane ~ ➜  ip a | grep -i mac
+
+controlplane ~ ✖ ssh node01
+Welcome to Ubuntu 22.04.5 LTS (GNU/Linux 6.8.0-90-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+This system has been minimized by removing packages and content that are
+not required on a system that users do not log into.
+
+To restore this content, you can run the 'unminimize' command.
+
+node01 ~ ➜  
+
+node01 ~ ➜  ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: tunl0@NONE: <NOARP> mtu 1480 qdisc noop state DOWN group default qlen 1000
+    link/ipip 0.0.0.0 brd 0.0.0.0
+4: eth0@if258237: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UP group default qlen 1000
+    link/ether aa:db:c5:c1:3e:57 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 10.244.197.210/32 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a8db:c5ff:fec1:3e57/64 scope link 
+       valid_lft forever preferred_lft forever
+5: flannel.1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1400 qdisc noqueue state UNKNOWN group default 
+    link/ether 62:a0:de:24:85:01 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.1.0/32 scope global flannel.1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::60a0:deff:fe24:8501/64 scope link 
+       valid_lft forever preferred_lft forever
+
+node01 ~ ➜  exit
+logout
+Connection to node01 closed.
+
+controlplane ~ ➜  ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: tunl0@NONE: <NOARP> mtu 1480 qdisc noop state DOWN group default qlen 1000
+    link/ipip 0.0.0.0 brd 0.0.0.0
+4: eth0@if257940: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UP group default qlen 1000
+    link/ether be:32:53:fb:ba:d0 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 10.244.83.140/32 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::bc32:53ff:fefb:bad0/64 scope link 
+       valid_lft forever preferred_lft forever
+5: flannel.1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1400 qdisc noqueue state UNKNOWN group default 
+    link/ether 7a:69:33:81:14:f4 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.0/32 scope global flannel.1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::7869:33ff:fe81:14f4/64 scope link 
+       valid_lft forever preferred_lft forever
+6: cni0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1400 qdisc noqueue state UP group default qlen 1000
+    link/ether 0a:35:96:1b:39:6a brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/24 brd 172.17.0.255 scope global cni0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::835:96ff:fe1b:396a/64 scope link 
+       valid_lft forever preferred_lft forever
+7: veth742cc571@if3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1400 qdisc noqueue master cni0 state UP group default 
+    link/ether f2:55:d9:33:17:e3 brd ff:ff:ff:ff:ff:ff link-netns cni-225ebc5e-7375-8ba4-298d-bac67b537ebb
+    inet6 fe80::c47a:35ff:feb3:5ad2/64 scope link 
+       valid_lft forever preferred_lft forever
+8: vethd54c814d@if3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1400 qdisc noqueue master cni0 state UP group default 
+    link/ether fa:06:5e:ea:d0:c4 brd ff:ff:ff:ff:ff:ff link-netns cni-b8d43179-0e90-a949-3f80-64a8863486b3
+    inet6 fe80::1857:63ff:fe9b:8d9d/64 scope link 
+       valid_lft forever preferred_lft forever
+
+controlplane ~ ➜  ip link
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: tunl0@NONE: <NOARP> mtu 1480 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+    link/ipip 0.0.0.0 brd 0.0.0.0
+4: eth0@if257940: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UP mode DEFAULT group default qlen 1000
+    link/ether be:32:53:fb:ba:d0 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+5: flannel.1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1400 qdisc noqueue state UNKNOWN mode DEFAULT group default 
+    link/ether 7a:69:33:81:14:f4 brd ff:ff:ff:ff:ff:ff
+6: cni0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1400 qdisc noqueue state UP mode DEFAULT group default qlen 1000
+    link/ether 0a:35:96:1b:39:6a brd ff:ff:ff:ff:ff:ff
+7: veth742cc571@if3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1400 qdisc noqueue master cni0 state UP mode DEFAULT group default 
+    link/ether f2:55:d9:33:17:e3 brd ff:ff:ff:ff:ff:ff link-netns cni-225ebc5e-7375-8ba4-298d-bac67b537ebb
+8: vethd54c814d@if3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1400 qdisc noqueue master cni0 state UP mode DEFAULT group default 
+    link/ether fa:06:5e:ea:d0:c4 brd ff:ff:ff:ff:ff:ff link-netns cni-b8d43179-0e90-a949-3f80-64a8863486b3
+
+controlplane ~ ➜  ip route show defaault
+Error: any valid prefix is expected rather than "defaault".
+
+controlplane ~ ✖ ip route show default
+default via 169.254.1.1 dev eth0 
+
+controlplane ~ ➜  netstat -nplt
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+tcp        0      0 10.244.83.140:2379      0.0.0.0:*               LISTEN      3304/etcd           
+tcp        0      0 10.244.83.140:2380      0.0.0.0:*               LISTEN      3304/etcd           
+tcp        0      0 127.0.0.1:45275         0.0.0.0:*               LISTEN      1013/containerd     
+tcp        0      0 127.0.0.1:10248         0.0.0.0:*               LISTEN      3776/kubelet        
+tcp        0      0 127.0.0.1:10249         0.0.0.0:*               LISTEN      4274/kube-proxy     
+tcp        0      0 127.0.0.1:10259         0.0.0.0:*               LISTEN      3279/kube-scheduler 
+tcp        0      0 127.0.0.1:10257         0.0.0.0:*               LISTEN      3216/kube-controlle 
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      1018/sshd: /usr/sbi 
+tcp        0      0 127.0.0.1:2381          0.0.0.0:*               LISTEN      3304/etcd           
+tcp        0      0 127.0.0.1:2379          0.0.0.0:*               LISTEN      3304/etcd           
+tcp        0      0 0.0.0.0:8080            0.0.0.0:*               LISTEN      1016/ttyd           
+tcp6       0      0 :::10256                :::*                    LISTEN      4274/kube-proxy     
+tcp6       0      0 :::10250                :::*                    LISTEN      3776/kubelet        
+tcp6       0      0 :::8888                 :::*                    LISTEN      3967/kubectl        
+tcp6       0      0 :::22                   :::*                    LISTEN      1018/sshd: /usr/sbi 
+tcp6       0      0 :::6443                 :::*                    LISTEN      3248/kube-apiserver 
+
+controlplane ~ ➜  
