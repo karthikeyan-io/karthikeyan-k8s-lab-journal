@@ -1,0 +1,79 @@
+----------------------------------------------------------------------------
+upgrading a helm chart
+----------------------------------------------------------------------------
+
+controlplane ~ ➜  helm repo add bitnami https://charts.bitnami.com/bitnami
+"bitnami" has been added to your repositories
+
+controlplane ~ ➜  helm list
+NAME    NAMESPACE       REVISION        UPDATED STATUS  CHART   APP VERSION
+
+controlplane ~ ➜  helm repo list
+NAME    URL                               
+bitnami https://charts.bitnami.com/bitnami
+
+controlplane ~ ➜  helm list
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+dazzling-web    default         3               2026-09-19 09:02:48.695562615 +0000 UTC deployed        nginx-12.0.4    1.22.0     
+
+controlplane ~ ➜  helm repo list
+NAME    URL                               
+bitnami https://charts.bitnami.com/bitnami
+
+controlplane ~ ➜  helm upgrade dazzling-web bitnami/nginx --version 18.3.6
+Pulled: us-central1-docker.pkg.dev/kk-lab-prod/helm-charts/bitnami/nginx:18.3.6
+Digest: sha256:19a3e4578765369a8c361efd98fe167cc4e4d7f8b4ee42da899ae86e5f2be263
+Release "dazzling-web" has been upgraded. Happy Helming!
+NAME: dazzling-web
+LAST DEPLOYED: Sat Sep 19 09:05:10 2026
+NAMESPACE: default
+STATUS: deployed
+REVISION: 4
+TEST SUITE: None
+NOTES:
+CHART NAME: nginx
+CHART VERSION: 18.3.6
+APP VERSION: 1.27.4
+
+Did you know there are enterprise versions of the Bitnami catalog? For enhanced secure software supply chain features, unlimited pulls from Docker, LTS support, or application customization, see Bitnami Premium or Tanzu Application Catalog. See https://www.arrow.com/globalecs/na/vendors/bitnami for more information.
+
+** Please be patient while the chart is being deployed **
+NGINX can be accessed through the following DNS name from within your cluster:
+
+    dazzling-web-nginx.default.svc.cluster.local (port 80)
+
+To access NGINX from outside the cluster, follow the steps below:
+
+1. Get the NGINX URL by running these commands:
+
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        Watch the status with: 'kubectl get svc --namespace default -w dazzling-web-nginx'
+
+    export SERVICE_PORT=$(kubectl get --namespace default -o jsonpath="{.spec.ports[0].port}" services dazzling-web-nginx)
+    export SERVICE_IP=$(kubectl get svc --namespace default dazzling-web-nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    echo "http://${SERVICE_IP}:${SERVICE_PORT}"
+
+WARNING: There are "resources" sections in the chart not set. Using "resourcesPreset" is not recommended for production. For production installations, please set the following values according to your workload needs:
+  - cloneStaticSiteFromGit.gitSync.resources
+  - resources
++info https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+
+controlplane ~ ➜  helm list
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+dazzling-web    default         4               2026-09-19 09:05:10.179005743 +0000 UTC deployed        nginx-18.3.6    1.27.4     
+
+controlplane ~ ➜  helm rollback dazzling-web bitnami/nginx revision=3
+Error: could not convert revision to a number: strconv.Atoi: parsing "oci://us-central1-docker.pkg.dev/kk-lab-prod/helm-charts/bitnami/nginx": invalid syntax
+
+controlplane ~ ✖ 
+
+controlplane ~ ✖ helm rollback dazzling-web
+Rollback was a success! Happy Helming!
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  helm list
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+dazzling-web    default         5               2026-09-19 09:06:36.335923118 +0000 UTC deployed        nginx-12.0.4    1.22.0     
+
+controlplane ~ ➜  
