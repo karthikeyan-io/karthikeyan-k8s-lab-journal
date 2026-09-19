@@ -1,0 +1,336 @@
+--------------------------------------------------------------------
+ Ingress Networking2
+--------------------------------------------------------------------
+
+controlplane ~ ➜  alias k=kubectl
+
+controlplane ~ ➜  k get all
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   172.20.0.1   <none>        443/TCP   12m
+
+controlplane ~ ➜  k get all -A
+NAMESPACE       NAME                                           READY   STATUS    RESTARTS   AGE
+ingress-nginx   pod/ingress-nginx-controller-c4d7b845b-r5fcw   1/1     Running   0          73s
+kube-flannel    pod/kube-flannel-ds-7brs4                      1/1     Running   0          12m
+kube-system     pod/coredns-6f6c7df987-7ww96                   1/1     Running   0          12m
+kube-system     pod/coredns-6f6c7df987-nrfz4                   1/1     Running   0          12m
+kube-system     pod/etcd-controlplane                          1/1     Running   0          12m
+kube-system     pod/kube-apiserver-controlplane                1/1     Running   0          12m
+kube-system     pod/kube-controller-manager-controlplane       1/1     Running   0          12m
+kube-system     pod/kube-proxy-gkp2z                           1/1     Running   0          12m
+kube-system     pod/kube-scheduler-controlplane                1/1     Running   0          12m
+webapp          pod/default-backend-85d469fdd9-7mwd6           1/1     Running   0          73s
+webapp          pod/web-app-79856ff6cc-6qhvl                   1/1     Running   0          73s
+
+NAMESPACE       NAME                               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
+default         service/kubernetes                 ClusterIP   172.20.0.1       <none>        443/TCP                      12m
+ingress-nginx   service/ingress-nginx-controller   NodePort    172.20.195.138   <none>        80:30080/TCP,443:30443/TCP   73s
+kube-system     service/kube-dns                   ClusterIP   172.20.0.10      <none>        53/UDP,53/TCP,9153/TCP       12m
+webapp          service/default-backend            ClusterIP   172.20.93.93     <none>        80/TCP                       73s
+webapp          service/web-app                    ClusterIP   172.20.148.156   <none>        80/TCP                       73s
+
+NAMESPACE      NAME                             DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+kube-flannel   daemonset.apps/kube-flannel-ds   1         1         1       1            1           <none>                   12m
+kube-system    daemonset.apps/kube-proxy        1         1         1       1            1           kubernetes.io/os=linux   12m
+
+NAMESPACE       NAME                                       READY   UP-TO-DATE   AVAILABLE   AGE
+ingress-nginx   deployment.apps/ingress-nginx-controller   1/1     1            1           73s
+kube-system     deployment.apps/coredns                    2/2     2            2           12m
+webapp          deployment.apps/default-backend            1/1     1            1           73s
+webapp          deployment.apps/web-app                    1/1     1            1           73s
+
+NAMESPACE       NAME                                                 DESIRED   CURRENT   READY   AGE
+ingress-nginx   replicaset.apps/ingress-nginx-controller-c4d7b845b   1         1         1       73s
+kube-system     replicaset.apps/coredns-6f6c7df987                   2         2         2       12m
+webapp          replicaset.apps/default-backend-85d469fdd9           1         1         1       73s
+webapp          replicaset.apps/web-app-79856ff6cc                   1         1         1       73s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl -n ingress-nginx get deploy
+NAME                       READY   UP-TO-DATE   AVAILABLE   AGE
+ingress-nginx-controller   1/1     1            1           112s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  vi nginx-web-Ingress.yaml
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl create -f nginx-web-Ingress.yaml 
+error: error parsing nginx-web-Ingress.yaml: error converting YAML to JSON: yaml: line 7: did not find expected key
+
+controlplane ~ ✖ kubectl create -f nginx-web-Ingress2.yaml 
+error: the path "nginx-web-Ingress2.yaml" does not exist
+
+controlplane ~ ✖ vi nginx-web-Ingress2.yaml
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  kubectl create -f nginx-web-Ingress2.yaml 
+ingress.networking.k8s.io/web-app-ingress created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  cat nginx-web-Ingress
+cat: nginx-web-Ingress: No such file or directory
+
+controlplane ~ ✖ cat nginx-web-Ingress2.yaml 
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-app-ingress
+  namespace: webapp
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: app.kodekloud.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-app
+            port:
+              number: 80
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get ingress
+No resources found in default namespace.
+
+controlplane ~ ➜  k get ingress -n web-app
+No resources found in web-app namespace.
+
+controlplane ~ ➜  k get ns
+NAME              STATUS   AGE
+default           Active   23m
+ingress-nginx     Active   12m
+kube-flannel      Active   23m
+kube-node-lease   Active   23m
+kube-public       Active   23m
+kube-system       Active   23m
+webapp            Active   12m
+
+controlplane ~ ➜  k get pod -n webapp 
+NAME                               READY   STATUS    RESTARTS   AGE
+default-backend-85d469fdd9-7mwd6   1/1     Running   0          12m
+web-app-79856ff6cc-6qhvl           1/1     Running   0          12m
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get all -n webapp 
+NAME                                   READY   STATUS    RESTARTS   AGE
+pod/default-backend-85d469fdd9-7mwd6   1/1     Running   0          12m
+pod/web-app-79856ff6cc-6qhvl           1/1     Running   0          12m
+
+NAME                      TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+service/default-backend   ClusterIP   172.20.93.93     <none>        80/TCP    12m
+service/web-app           ClusterIP   172.20.148.156   <none>        80/TCP    12m
+
+NAME                              READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/default-backend   1/1     1            1           12m
+deployment.apps/web-app           1/1     1            1           12m
+
+NAME                                         DESIRED   CURRENT   READY   AGE
+replicaset.apps/default-backend-85d469fdd9   1         1         1       12m
+replicaset.apps/web-app-79856ff6cc           1         1         1       12m
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get networkpolicies.networking.k8s.io 
+No resources found in default namespace.
+
+controlplane ~ ➜  k get networkpolicies.networking.k8s.io -n weapp
+No resources found in weapp namespace.
+
+controlplane ~ ➜  k get ingress
+ingressclasses.networking.k8s.io  ingresses.networking.k8s.io       
+
+controlplane ~ ➜  k get ingress
+ingressclasses.networking.k8s.io  ingresses.networking.k8s.io       
+
+controlplane ~ ➜  k get ingresses.networking.k8s.io -n webapp 
+NAME              CLASS   HOSTS                 ADDRESS          PORTS   AGE
+web-app-ingress   nginx   app.kodekloud.local   172.20.195.138   80      109s
+
+controlplane ~ ➜  k describe ingresses.networking.k8s.io -n webapp 
+Name:             web-app-ingress
+Labels:           <none>
+Namespace:        webapp
+Address:          172.20.195.138
+Ingress Class:    nginx
+Default backend:  <default>
+Rules:
+  Host                 Path  Backends
+  ----                 ----  --------
+  app.kodekloud.local  
+                       /   web-app:80 (172.17.0.4:80)
+Annotations:           <none>
+Events:
+  Type    Reason  Age                 From                      Message
+  ----    ------  ----                ----                      -------
+  Normal  Sync    97s (x2 over 119s)  nginx-ingress-controller  Scheduled for sync
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  # enable tls termination
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  i nginx-web-Ingress2.yaml 
+-bash: i: command not found
+
+controlplane ~ ✖ vi nginx-web-Ingress2.yaml 
+
+controlplane ~ ➜  cat nginx-web-Ingress2.yaml 
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-app-ingress
+  namespace: webapp
+spec:
+  tls:
+  - hosts:
+      - app.kodekloud.local
+    secretName: app-tls
+  ingressClassName: nginx
+  rules:
+  - host: app.kodekloud.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-app
+            port:
+              number: 80
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get secrets -n webapp 
+NAME      TYPE                DATA   AGE
+app-tls   kubernetes.io/tls   2      16m
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k apply -f nginx-web-Ingress2.yaml 
+Warning: resource ingresses/web-app-ingress is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply. kubectl apply should only be used on resources created declaratively by either kubectl create --save-config or kubectl apply. The missing annotation will be patched automatically.
+ingress.networking.k8s.io/web-app-ingress configured
+
+controlplane ~ ➜  k describe ingresses.networking.k8s.io -n webapp
+Name:             web-app-ingress
+Labels:           <none>
+Namespace:        webapp
+Address:          172.20.195.138
+Ingress Class:    nginx
+Default backend:  <default>
+TLS:
+  app-tls terminates app.kodekloud.local
+Rules:
+  Host                 Path  Backends
+  ----                 ----  --------
+  app.kodekloud.local  
+                       /   web-app:80 (172.17.0.4:80)
+Annotations:           <none>
+Events:
+  Type    Reason  Age                  From                      Message
+  ----    ------  ----                 ----                      -------
+  Normal  Sync    33s (x3 over 5m28s)  nginx-ingress-controller  Scheduled for sync
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  vi nginx-web-Ingress2.yaml 
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k apply -f nginx-web-Ingress2.yaml 
+The request is invalid: patch: Invalid value: "map[metadata:map[annotations:map[kubectl.kubernetes.io/last-applied-configuration:{\"apiVersion\":\"networking.k8s.io/v1\",\"kind\":\"Ingress\",\"metadata\":{\"annotations\":{},\"name\":\"web-app-ingress\",\"namespace\":\"webapp\",\"nginx.ingress.kubernetes.io/ssl-redirect\":\"true\"},\"spec\":{\"ingressClassName\":\"nginx\",\"rules\":[{\"host\":\"app.kodekloud.local\",\"http\":{\"paths\":[{\"backend\":{\"service\":{\"name\":\"web-app\",\"port\":{\"number\":80}}},\"path\":\"/\",\"pathType\":\"Prefix\"}]}}],\"tls\":[{\"hosts\":[\"app.kodekloud.local\"],\"secretName\":\"app-tls\"}]}}\n] nginx.ingress.kubernetes.io/ssl-redirect:true]]": strict decoding error: unknown field "metadata.nginx.ingress.kubernetes.io/ssl-redirect"
+
+controlplane ~ ✖ vi nginx-web-Ingress2.yaml 
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k apply -f nginx-web-Ingress2.yaml 
+ingress.networking.k8s.io/web-app-ingress configured
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  cat nginx-web-Ingress2.yaml 
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-app-ingress
+  namespace: webapp
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"  
+spec:
+  tls:
+  - hosts:
+      - app.kodekloud.local
+    secretName: app-tls
+  ingressClassName: nginx
+  rules:
+  - host: app.kodekloud.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-app
+            port:
+              number: 80
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k describe ingresses.networking.k8s.io -n webapp
+Name:             web-app-ingress
+Labels:           <none>
+Namespace:        webapp
+Address:          172.20.195.138
+Ingress Class:    nginx
+Default backend:  <default>
+TLS:
+  app-tls terminates app.kodekloud.local
+Rules:
+  Host                 Path  Backends
+  ----                 ----  --------
+  app.kodekloud.local  
+                       /   web-app:80 (172.17.0.4:80)
+Annotations:           nginx.ingress.kubernetes.io/ssl-redirect: true
+Events:
+  Type    Reason  Age                From                      Message
+  ----    ------  ----               ----                      -------
+  Normal  Sync    20s (x4 over 12m)  nginx-ingress-controller  Scheduled for sync
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get secrets -n webapp 
+NAME      TYPE                DATA   AGE
+app-tls   kubernetes.io/tls   2      24m
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get ingresses.networking.k8s.io -n webapp 
+NAME              CLASS   HOSTS                 ADDRESS          PORTS     AGE
+web-app-ingress   nginx   app.kodekloud.local   172.20.195.138   80, 443   13m
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  curl -Lk https://app.kodekloud.local
+Welcome to the secure web app!
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
