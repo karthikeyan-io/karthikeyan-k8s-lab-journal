@@ -1,0 +1,318 @@
+---------------------------------------------------------------------
+Troubleshooting - Application Failure -1
+---------------------------------------------------------------------
+
+
+controlplane ~ ➜  alias k=kubectl
+
+controlplane ~ ➜  kubectl config set-context --current --namespace=alpha
+Context "default" modified.
+
+controlplane ~ ➜  k get all
+NAME                                READY   STATUS    RESTARTS   AGE
+pod/mysql                           1/1     Running   0          2m8s
+pod/webapp-mysql-6ddf84655d-vrhht   1/1     Running   0          2m7s
+
+NAME                  TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+service/mysql         ClusterIP   10.43.236.225   <none>        3306/TCP         2m7s
+service/web-service   NodePort    10.43.116.179   <none>        8080:30081/TCP   2m7s
+
+NAME                           READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/webapp-mysql   1/1     1            1           2m7s
+
+NAME                                      DESIRED   CURRENT   READY   AGE
+replicaset.apps/webapp-mysql-6ddf84655d   1         1         1       2m7s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get endpoints
+Warning: v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice
+NAME          ENDPOINTS         AGE
+mysql         10.22.0.9:3306    2m43s
+web-service   10.22.0.10:8080   2m43s
+
+controlplane ~ ➜  k get svc
+NAME          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+mysql         ClusterIP   10.43.236.225   <none>        3306/TCP         3m5s
+web-service   NodePort    10.43.116.179   <none>        8080:30081/TCP   3m5s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get svc web-service -o yaml
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"name":"web-service","namespace":"alpha"},"spec":{"ports":[{"nodePort":30081,"port":8080,"targetPort":8080}],"selector":{"name":"webapp-mysql"},"type":"NodePort"}}
+  creationTimestamp: "2026-09-21T02:34:05Z"
+  name: web-service
+  namespace: alpha
+  resourceVersion: "1192"
+  uid: 1af90232-2b42-48c2-83fc-d10cdb2050c2
+spec:
+  clusterIP: 10.43.116.179
+  clusterIPs:
+  - 10.43.116.179
+  externalTrafficPolicy: Cluster
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - nodePort: 30081
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    name: webapp-mysql
+  sessionAffinity: None
+  type: NodePort
+status:
+  loadBalancer: {}
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  curl http://localhost:30081
+<!doctype html>
+<title>Hello from Flask</title>
+<body style="background: #ff3f3f;"></body>
+<div style="color: #e4e4e4;
+    text-align:  center;
+    height: 90px;
+    vertical-align:  middle;">
+
+  
+    <img src="/static/img/failed.png">
+    <!-- <h1> DATABASE CONNECTION FAILED !!</h1> -->
+  
+
+  
+    <h2> Environment Variables: DB_Host=mysql-service; DB_Database=Not Set; DB_User=root; DB_Password=paswrd; 2003: Can&#39;t connect to MySQL server on &#39;mysql-service:3306&#39; (-2 Name does not resolve) </h2>
+  
+
+  
+    <p> From webapp-mysql-6ddf84655d-vrhht!</p>
+  
+
+  
+
+</div>
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get po webapp-mysql-6ddf84655d-vrhht -o yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: "2026-09-21T02:34:05Z"
+  generateName: webapp-mysql-6ddf84655d-
+  generation: 1
+  labels:
+    name: webapp-mysql
+    pod-template-hash: 6ddf84655d
+  name: webapp-mysql-6ddf84655d-vrhht
+  namespace: alpha
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: webapp-mysql-6ddf84655d
+    uid: d2debc2d-d2af-44c2-9399-16c554f09bbc
+  resourceVersion: "1203"
+  uid: b6b94f8c-9b6f-4c98-b362-d1c1aa51eefb
+spec:
+  containers:
+  - env:
+    - name: DB_Host
+      value: mysql-service
+    - name: DB_User
+      value: root
+    - name: DB_Password
+      value: paswrd
+    image: mmumshad/simple-webapp-mysql
+    imagePullPolicy: Always
+    name: webapp-mysql
+    ports:
+    - containerPort: 8080
+      protocol: TCP
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-mvvzb
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  nodeName: controlplane
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: kube-api-access-mvvzb
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-21T02:34:11Z"
+    observedGeneration: 1
+    status: "True"
+    type: PodReadyToStartContainers
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-21T02:34:05Z"
+    observedGeneration: 1
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-21T02:34:11Z"
+    observedGeneration: 1
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-21T02:34:11Z"
+    observedGeneration: 1
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2026-09-21T02:34:05Z"
+    observedGeneration: 1
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: containerd://d9b4693ebf3389204394790d9e820ea98c1ba591a68e01565f04f5b0fab58b92
+    image: docker.io/mmumshad/simple-webapp-mysql:latest
+    imageID: docker.io/mmumshad/simple-webapp-mysql@sha256:d4d0c03fcb76cee6ae2511fa7f3f6b7090f0c5e0cb3f276687f9ddf2c689cc09
+    lastState: {}
+    name: webapp-mysql
+    ready: true
+    resources: {}
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2026-09-21T02:34:11Z"
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-mvvzb
+      readOnly: true
+      recursiveReadOnly: Disabled
+  hostIP: 10.244.167.1
+  hostIPs:
+  - ip: 10.244.167.1
+  observedGeneration: 1
+  phase: Running
+  podIP: 10.22.0.10
+  podIPs:
+  - ip: 10.22.0.10
+  qosClass: BestEffort
+  startTime: "2026-09-21T02:34:05Z"
+
+controlplane ~ ➜  k get svc mysql -o yaml
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"name":"mysql","namespace":"alpha"},"spec":{"ports":[{"port":3306,"targetPort":3306}],"selector":{"name":"mysql"}}}
+  creationTimestamp: "2026-09-21T02:34:05Z"
+  name: mysql
+  namespace: alpha
+  resourceVersion: "1174"
+  uid: 473a0846-aef2-488a-a64e-25e2faeca356
+spec:
+  clusterIP: 10.43.236.225
+  clusterIPs:
+  - 10.43.236.225
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - port: 3306
+    protocol: TCP
+    targetPort: 3306
+  selector:
+    name: mysql
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+
+controlplane ~ ➜  k get svc mysql -o yaml > mysql-svc.yaml
+
+controlplane ~ ➜  vi mysql-svc.yaml 
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k delete svc mysql 
+service "mysql" deleted from alpha namespace
+
+controlplane ~ ➜  k apply -f mysql-svc.yaml 
+service/mysql-service created
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get svc
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+mysql-service   ClusterIP   10.43.236.225   <none>        3306/TCP         5s
+web-service     NodePort    10.43.116.179   <none>        8080:30081/TCP   6m11s
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  curl http://localhost:30081
+<!doctype html>
+<title>Hello from Flask</title>
+<body style="background: #39b54b;"></body>
+<div style="color: #e4e4e4;
+    text-align:  center;
+    height: 90px;
+    vertical-align:  middle;">
+
+  
+    <!-- <h1> DATABASE CONNECTION SUCCESSFUL !</h1> -->
+    <img src="/static/img/success.jpg">
+  
+
+  
+    <h2> Environment Variables: DB_Host=mysql-service; DB_Database=Not Set; DB_User=root; DB_Password=paswrd;  </h2>
+  
+
+  
+    <p> From webapp-mysql-6ddf84655d-vrhht!</p>
+  
+
+  
+
+</div>
+controlplane ~ ➜  
