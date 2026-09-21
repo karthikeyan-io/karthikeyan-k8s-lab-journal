@@ -1,0 +1,232 @@
+----------------------------------------------------------------------------------
+workernode failure -1
+
+----------------------------------------------------------------------------------
+
+controlplane ~ ➜  k get nodes
+NAME           STATUS     ROLES           AGE   VERSION
+controlplane   Ready      control-plane   17m   v1.35.0
+node01         NotReady   <none>          17m   v1.35.0
+
+controlplane ~ ➜  ssh node01
+Welcome to Ubuntu 22.04.5 LTS (GNU/Linux 6.8.0-90-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+This system has been minimized by removing packages and content that are
+not required on a system that users do not log into.
+
+To restore this content, you can run the 'unminimize' command.
+Last login: Mon Sep 21 07:10:13 2026 from 10.244.34.196
+
+node01 ~ ➜  systemctl status kubelet.service 
+● kubelet.service - kubelet: The Kubernetes Node Agent
+     Loaded: loaded (/lib/systemd/system/kubelet.service; enabled; vendor preset: enabled)
+    Drop-In: /usr/lib/systemd/system/kubelet.service.d
+             └─10-kubeadm.conf
+     Active: activating (auto-restart) (Result: exit-code) since Mon 2026-09-21 07:14:43 UTC; 4s ago
+       Docs: https://kubernetes.io/docs/
+    Process: 20646 ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTR>
+   Main PID: 20646 (code=exited, status=1/FAILURE)
+        CPU: 47ms
+
+
+node01 ~ ✖ systemctl restart kubelet.service 
+
+node01 ~ ➜  systemctl status kubelet.service 
+● kubelet.service - kubelet: The Kubernetes Node Agent
+     Loaded: loaded (/lib/systemd/system/kubelet.service; enabled; vendor preset: enabled)
+    Drop-In: /usr/lib/systemd/system/kubelet.service.d
+             └─10-kubeadm.conf
+     Active: activating (auto-restart) (Result: exit-code) since Mon 2026-09-21 07:15:35 UTC; 6s ago
+       Docs: https://kubernetes.io/docs/
+    Process: 21141 ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTR>
+   Main PID: 21141 (code=exited, status=1/FAILURE)
+        CPU: 40ms
+lines 1-9/9 (END)
+
+node01 ~ ✖ systemctl status containerd.service 
+● containerd.service - containerd container runtime
+     Loaded: loaded (/lib/systemd/system/containerd.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2026-09-21 06:55:46 UTC; 20min ago
+       Docs: https://containerd.io
+   Main PID: 989 (containerd)
+      Tasks: 47
+     Memory: 41.4M
+        CPU: 2.609s
+     CGroup: /system.slice/containerd.service
+             ├─ 989 /usr/bin/containerd
+             ├─2220 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id 694fd5a8641356754a93c5a737b6db6d38503e3a29e009ce91d7>
+             └─2236 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id 92a717f742a712fb75550863a5f2e8ed7e66edc279473c038291>
+
+Sep 21 06:56:23 node01 containerd[989]: time="2026-09-21T06:56:23.865177030Z" level=info msg="StartContainer for \"c7c754907e14>
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.022832174Z" level=info msg="StartContainer for \"c7c754907e14>
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.542376332Z" level=info msg="shim disconnected" id=c7c754907e1>
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.542439921Z" level=warning msg="cleaning up after shim disconn>
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.542449731Z" level=info msg="cleaning up dead shim" namespace=>
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.831420006Z" level=info msg="CreateContainer within sandbox \">
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.853473815Z" level=info msg="CreateContainer within sandbox \">
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.853823971Z" level=info msg="StartContainer for \"3fd50c00553e>
+Sep 21 06:56:25 node01 containerd[989]: time="2026-09-21T06:56:25.018286195Z" level=info msg="StartContainer for \"3fd50c00553e>
+Sep 21 07:11:46 node01 containerd[989]: time="2026-09-21T07:11:46.833895880Z" level=info msg="No cni config template is specifi>
+lines 1-23/23 (END)
+
+node01 ~ ✖ systemctl status kubelet.service 
+● kubelet.service - kubelet: The Kubernetes Node Agent
+     Loaded: loaded (/lib/systemd/system/kubelet.service; enabled; vendor preset: enabled)
+    Drop-In: /usr/lib/systemd/system/kubelet.service.d
+             └─10-kubeadm.conf
+     Active: activating (auto-restart) (Result: exit-code) since Mon 2026-09-21 07:16:06 UTC; 3s ago
+       Docs: https://kubernetes.io/docs/
+    Process: 21469 ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTR>
+   Main PID: 21469 (code=exited, status=1/FAILURE)
+        CPU: 40ms
+lines 1-9/9 (END)
+
+node01 ~ ✖ cd /etc/kubernetes/
+
+node01 /etc/kubernetes ➜  ls -ltr
+total 12
+drwxrwxr-x 2 root root 4096 Feb 18  2026 manifests
+drwxr-xr-x 2 root root 4096 Sep 21 06:56 pki
+-rw------- 1 root root 1945 Sep 21 06:56 kubelet.conf
+
+node01 /etc/kubernetes ➜  vi kubelet.conf 
+
+node01 /etc/kubernetes ➜  journalctl -u kubelet.service -f
+Sep 21 07:15:35 node01 kubelet[21141]: E0921 07:15:35.344047   21141 run.go:72] "command failed" err="failed to construct kubelet dependencies: unable to load client CA file /etc/kubernetes/pki/WRONG-CA-FILE.crt: open /etc/kubernetes/pki/WRONG-CA-FILE.crt: no such file or directory"
+Sep 21 07:15:45 node01 kubelet[21267]: E0921 07:15:45.580325   21267 run.go:72] "command failed" err="failed to construct kubelet dependencies: unable to load client CA file /etc/kubernetes/pki/WRONG-CA-FILE.crt: open /etc/kubernetes/pki/WRONG-CA-FILE.crt: no such file or directory"
+Sep 21 07:15:55 node01 kubelet[21361]: E0921 07:15:55.835175   21361 run.go:72] "command failed" err="failed to construct kubelet dependencies: unable to load client CA file /etc/kubernetes/pki/WRONG-CA-FILE.crt: open /etc/kubernetes/pki/WRONG-CA-FILE.crt: no such file or directory"
+Sep 21 07:16:06 node01 kubelet[21469]: E0921 07:16:06.085364   21469 run.go:72] "command failed" err="failed to construct kubelet dependencies: unable to load client CA file /etc/kubernetes/pki/WRONG-CA-FILE.crt: open /etc/kubernetes/pki/WRONG-CA-FILE.crt: no such file or directory"
+Sep 21 07:16:16 node01 kubelet[21583]: E0921 07:16:16.332891   21583 run.go:72] "command failed" err="failed to construct kubelet dependencies: unable to load client CA file /etc/kubernetes/pki/WRONG-CA-FILE.crt: open /etc/kubernetes/pki/WRONG-CA-FILE.crt: no such file or directory"
+Sep 21 07:16:26 node01 kubelet[21692]: E0921 07:16:26.584396   21692 run.go:72] "command failed" err="failed to construct kubelet dependencies: unable to load client CA file /etc/kubernetes/pki/WRONG-CA-FILE.crt: open /etc/kubernetes/pki/WRONG-CA-FILE.crt: no such file or directory"
+Sep 21 07:16:36 node01 kubelet[21807]: E0921 07:16:36.835942   21807 run.go:72] "command failed" err="failed to construct kubelet dependencies: unable to load client CA file /etc/kubernetes/pki/WRONG-CA-FILE.crt: open /etc/kubernetes/pki/WRONG-CA-FILE.crt: no such file or directory"
+Sep 21 07:16:47 node01 kubelet[21911]: E0921 07:16:47.087015   21911 run.go:72] "command failed" err="failed to construct kubelet dependencies: unable to load client CA file /etc/kubernetes/pki/WRONG-CA-FILE.crt: open /etc/kubernetes/pki/WRONG-CA-FILE.crt: no such file or directory"
+Sep 21 07:16:57 node01 kubelet[21996]: E0921 07:16:57.339693   21996 run.go:72] "command failed" err="failed to construct kubelet dependencies: unable to load client CA file /etc/kubernetes/pki/WRONG-CA-FILE.crt: open /etc/kubernetes/pki/WRONG-CA-FILE.crt: no such file or directory"
+Sep 21 07:17:07 node01 kubelet[22077]: E0921 07:17:07.586646   22077 run.go:72] "command failed" err="failed to construct kubelet dependencies: unable to load client CA file /etc/kubernetes/pki/WRONG-CA-FILE.crt: open /etc/kubernetes/pki/WRONG-CA-FILE.crt: no such file or directory"
+^C
+
+node01 /etc/kubernetes ✖ cd manifests/
+
+node01 /etc/kubernetes/manifests ➜  ls -ltr
+total 0
+
+node01 /etc/kubernetes/manifests ➜  cd ..
+
+node01 /etc/kubernetes ➜  ls -ltr
+total 12
+drwxrwxr-x 2 root root 4096 Feb 18  2026 manifests
+drwxr-xr-x 2 root root 4096 Sep 21 06:56 pki
+-rw------- 1 root root 1945 Sep 21 06:56 kubelet.conf
+
+node01 /etc/kubernetes ➜  grep -i WRONG-CA-FILE.crt *
+grep: manifests: Is a directory
+grep: pki: Is a directory
+
+node01 /etc/kubernetes ✖ cd pki/
+
+node01 /etc/kubernetes/pki ➜  grep -i WRONG-CA-FILE.crt *
+
+node01 /etc/kubernetes/pki ✖ cd /var/lib/
+
+node01 /var/lib ➜  ls -ltr
+total 88
+drwxr-xr-x  2 root root 4096 Apr 18  2022 misc
+drwxr-xr-x  2 root root 4096 Nov 11  2024 PackageKit
+drwxr-xr-x  2 root root 4096 Jul  9  2025 git
+-rw-r--r--  1 root root    0 Feb 10  2026 shells.state
+drwxr-xr-x  4 root root 4096 Feb 18  2026 rancher
+drwxr-xr-x  2 root root 4096 Feb 18  2026 k0s
+drwx------  2 root root 4096 Feb 18  2026 docker
+drwxr-xr-x  2 root root 4096 Feb 18  2026 buildkit
+drwxr-xr-x  2 root root 4096 Feb 18  2026 python
+drwx------  2 root root 4096 Feb 18  2026 private
+drwx------  3 root root 4096 Feb 18  2026 polkit-1
+drwxr-xr-x  3 root root 4096 Feb 18  2026 vim
+drwxr-xr-x  3 root root 4096 Feb 18  2026 sudo
+drwxr-xr-x  2 root root 4096 Feb 18  2026 dbus
+drwxr-xr-x  1 root root 4096 Feb 18  2026 pam
+drwxr-xr-x  2 root root 4096 Feb 18  2026 man-db
+drwxr-xr-x  3 root root 4096 Feb 18  2026 ucf
+drwxr-xr-x  1 root root 4096 Feb 18  2026 apt
+drwxr-xr-x  1 root root 4096 Feb 18  2026 dpkg
+drwxr-xr-x  1 root root 4096 Sep 21 06:55 systemd
+drwxr-xr-x  1 root root 4096 Sep 21 06:56 containerd
+drwxr-xr-x 10 root root 4096 Sep 21 07:12 kubelet
+
+node01 /var/lib ➜  cd kubelet/
+
+node01 /var/lib/kubelet ➜  ls -ltr
+total 64
+-rw-r--r-- 1 root root   71 Sep 21 06:56 instance-config.yaml
+-rw-r--r-- 1 root root   24 Sep 21 06:56 kubeadm-flags.env
+drwxr-xr-x 2 root root 4096 Sep 21 06:56 pki
+drwx------ 4 root root 4096 Sep 21 06:56 image_manager
+drwxr-x--- 2 root root 4096 Sep 21 06:56 plugins_registry
+drwxr-x--- 2 root root 4096 Sep 21 06:56 plugins
+drwx------ 2 root root 4096 Sep 21 06:56 checkpoints
+-rw------- 1 root root   62 Sep 21 06:56 cpu_manager_state
+-rw------- 1 root root   61 Sep 21 06:56 memory_manager_state
+-rw------- 1 root root  326 Sep 21 06:56 allocated_pods_state
+drwxr-x--- 4 root root 4096 Sep 21 06:56 pods
+-rw------- 1 root root  139 Sep 21 06:56 dra_manager_state
+-rw------- 1 root root  372 Sep 21 06:56 actuated_pods_state
+drwxr-x--- 2 root root 4096 Sep 21 07:11 pod-resources
+drwxr-xr-x 2 root root 4096 Sep 21 07:11 device-plugins
+-rw-r--r-- 1 root root 1130 Sep 21 07:12 config.yaml
+
+node01 /var/lib/kubelet ➜  grep -i WRONG-CA-FILE.crt *
+grep: checkpoints: Is a directory
+config.yaml:    clientCAFile: /etc/kubernetes/pki/WRONG-CA-FILE.crt
+grep: device-plugins: Is a directory
+grep: image_manager: Is a directory
+grep: pki: Is a directory
+grep: plugins: Is a directory
+grep: plugins_registry: Is a directory
+grep: pod-resources: Is a directory
+grep: pods: Is a directory
+
+node01 /var/lib/kubelet ✖ ls -ltr /etc/kubernetes/pki/
+total 4
+-rw-r--r-- 1 root root 1107 Sep 21 06:56 ca.crt
+
+node01 /var/lib/kubelet ➜  ls -ltr
+total 64
+-rw-r--r-- 1 root root   71 Sep 21 06:56 instance-config.yaml
+-rw-r--r-- 1 root root   24 Sep 21 06:56 kubeadm-flags.env
+drwxr-xr-x 2 root root 4096 Sep 21 06:56 pki
+drwx------ 4 root root 4096 Sep 21 06:56 image_manager
+drwxr-x--- 2 root root 4096 Sep 21 06:56 plugins_registry
+drwxr-x--- 2 root root 4096 Sep 21 06:56 plugins
+drwx------ 2 root root 4096 Sep 21 06:56 checkpoints
+-rw------- 1 root root   62 Sep 21 06:56 cpu_manager_state
+-rw------- 1 root root   61 Sep 21 06:56 memory_manager_state
+-rw------- 1 root root  326 Sep 21 06:56 allocated_pods_state
+drwxr-x--- 4 root root 4096 Sep 21 06:56 pods
+-rw------- 1 root root  139 Sep 21 06:56 dra_manager_state
+-rw------- 1 root root  372 Sep 21 06:56 actuated_pods_state
+drwxr-x--- 2 root root 4096 Sep 21 07:11 pod-resources
+drwxr-xr-x 2 root root 4096 Sep 21 07:11 device-plugins
+-rw-r--r-- 1 root root 1130 Sep 21 07:12 config.yaml
+
+node01 /var/lib/kubelet ➜  ls -ltr *.crt
+ls: cannot access '*.crt': No such file or directory
+
+node01 /var/lib/kubelet ✖ cd pki/
+
+node01 lib/kubelet/pki ➜  ls -ltr *.crt
+-rw-r--r-- 1 root root 2254 Sep 21 06:56 kubelet.crt
+
+node01 lib/kubelet/pki ➜  cd ..
+
+node01 /var/lib/kubelet ➜  vi config.yaml 
+
+node01 /var/lib/kubelet ➜  logout
+Connection to node01 closed.
+
+controlplane ~ ➜  k get nodes
+NAME           STATUS   ROLES           AGE   VERSION
+controlplane   Ready    control-plane   24m   v1.35.0
+node01         Ready    <none>          24m   v1.35.0
