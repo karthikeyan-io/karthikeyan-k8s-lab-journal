@@ -1,0 +1,168 @@
+----------------------------------------------------------------------------------
+Control Plane failure -1
+
+----------------------------------------------------------------------------------
+
+
+The cluster is broken. We tried deploying an application but it's not working. Troubleshoot and fix the issue.
+
+
+Start looking at the deployments.
+
+controlplane ~ ➜  alias k=kubectl
+
+controlplane ~ ➜  k get nodes 
+NAME           STATUS   ROLES           AGE   VERSION
+controlplane   Ready    control-plane   10m   v1.35.0
+
+controlplane ~ ➜  k get ns
+NAME              STATUS   AGE
+default           Active   10m
+kube-flannel      Active   10m
+kube-node-lease   Active   10m
+kube-public       Active   10m
+kube-system       Active   10m
+
+controlplane ~ ➜  k get pods -n kube-system 
+NAME                                   READY   STATUS             RESTARTS      AGE
+coredns-6f6c7df987-2d49x               1/1     Running            0             10m
+coredns-6f6c7df987-j44qx               1/1     Running            0             10m
+etcd-controlplane                      1/1     Running            0             10m
+kube-apiserver-controlplane            1/1     Running            0             10m
+kube-controller-manager-controlplane   1/1     Running            0             10m
+kube-proxy-rrnlc                       1/1     Running            0             10m
+kube-scheduler-controlplane            0/1     CrashLoopBackOff   2 (21s ago)   33s
+
+controlplane ~ ➜  k get pods
+NAME                 READY   STATUS    RESTARTS   AGE
+app-5497957c-lklgz   0/1     Pending   0          42s
+
+controlplane ~ ➜  k logs app-5497957c-lklgz
+
+controlplane ~ ➜  k logs kube-scheduler-controlplane -n kube-system 
+
+controlplane ~ ➜  k describe pod kube-scheduler-controlplane -n kube-system
+Name:                 kube-scheduler-controlplane
+Namespace:            kube-system
+Priority:             2000001000
+Priority Class Name:  system-node-critical
+Node:                 controlplane/10.244.253.150
+Start Time:           Mon, 21 Sep 2026 06:23:26 +0000
+Labels:               component=kube-scheduler
+                      tier=control-plane
+Annotations:          kubernetes.io/config.hash: 186c52b5584d78a99894b5f06124bf5d
+                      kubernetes.io/config.mirror: 186c52b5584d78a99894b5f06124bf5d
+                      kubernetes.io/config.seen: 2026-09-21T06:33:16.892940916Z
+                      kubernetes.io/config.source: file
+Status:               Running
+SeccompProfile:       RuntimeDefault
+IP:                   10.244.253.150
+IPs:
+  IP:           10.244.253.150
+Controlled By:  Node/controlplane
+Containers:
+  kube-scheduler:
+    Container ID:  containerd://2a34f7d30a0197912731132c79d4f3f4b5a50eb49a8a51889ed5e3a9a03bd047
+    Image:         registry.k8s.io/kube-scheduler:v1.35.0
+    Image ID:      registry.k8s.io/kube-scheduler@sha256:0ab622491a82532e01876d55e365c08c5bac01bcd5444a8ed58c1127ab47819f
+    Port:          10259/TCP (probe-port)
+    Host Port:     10259/TCP (probe-port)
+    Command:
+      kube-schedulerrrr
+      --authentication-kubeconfig=/etc/kubernetes/scheduler.conf
+      --authorization-kubeconfig=/etc/kubernetes/scheduler.conf
+      --bind-address=127.0.0.1
+      --kubeconfig=/etc/kubernetes/scheduler.conf
+      --leader-elect=true
+    State:          Waiting
+      Reason:       CrashLoopBackOff
+    Last State:     Terminated
+      Reason:       StartError
+      Message:      failed to create containerd task: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: exec: "kube-schedulerrrr": executable file not found in $PATH: unknown
+      Exit Code:    128
+      Started:      Thu, 01 Jan 1970 00:00:00 +0000
+      Finished:     Mon, 21 Sep 2026 06:35:01 +0000
+    Ready:          False
+    Restart Count:  4
+    Requests:
+      cpu:        100m
+    Liveness:     http-get https://127.0.0.1:probe-port/livez delay=10s timeout=15s period=10s #success=1 #failure=8
+    Readiness:    http-get https://127.0.0.1:probe-port/readyz delay=0s timeout=15s period=1s #success=1 #failure=3
+    Startup:      http-get https://127.0.0.1:probe-port/livez delay=10s timeout=15s period=10s #success=1 #failure=24
+    Environment:  <none>
+    Mounts:
+      /etc/kubernetes/scheduler.conf from kubeconfig (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       False 
+  ContainersReady             False 
+  PodScheduled                True 
+Volumes:
+  kubeconfig:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/kubernetes/scheduler.conf
+    HostPathType:  FileOrCreate
+QoS Class:         Burstable
+Node-Selectors:    <none>
+Tolerations:       :NoExecute op=Exists
+Events:
+  Type     Reason   Age                From     Message
+  ----     ------   ----               ----     -------
+  Normal   Pulled   5s (x5 over 96s)   kubelet  spec.containers{kube-scheduler}: Container image "registry.k8s.io/kube-scheduler:v1.35.0" already present on machine and can be accessed by the pod
+  Normal   Created  5s (x5 over 96s)   kubelet  spec.containers{kube-scheduler}: Container created
+  Warning  Failed   5s (x5 over 96s)   kubelet  spec.containers{kube-scheduler}: Error: failed to create containerd task: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: exec: "kube-schedulerrrr": executable file not found in $PATH: unknown
+  Warning  BackOff  3s (x12 over 94s)  kubelet  spec.containers{kube-scheduler}: Back-off restarting failed container kube-scheduler in pod kube-scheduler-controlplane_kube-system(186c52b5584d78a99894b5f06124bf5d)
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  ## failed to create containerd task: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: exec: "kube-schedulerrrr": executable file not found in $PATH: unknown
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  ### check for kube-schedulerrrr
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  cd /etc/kubernetes/manifests/
+
+controlplane /etc/kubernetes/manifests ➜  ls -ltr
+total 16
+-rw------- 1 root root 2616 Sep 21 06:23 etcd.yaml
+-rw------- 1 root root 3459 Sep 21 06:23 kube-controller-manager.yaml
+-rw------- 1 root root 3965 Sep 21 06:23 kube-apiserver.yaml
+-rw------- 1 root root 1729 Sep 21 06:33 kube-scheduler.yaml
+
+controlplane /etc/kubernetes/manifests ➜  cat kube-scheduler.yaml | grep -i kube-schedulerrrr
+    - kube-schedulerrrr
+
+controlplane /etc/kubernetes/manifests ➜  vi kube-scheduler.yaml 
+
+controlplane /etc/kubernetes/manifests ➜  
+
+controlplane /etc/kubernetes/manifests ➜  cat kube-scheduler.yaml | grep -i kube-schedulerrrr
+
+controlplane /etc/kubernetes/manifests ✖ 
+
+controlplane /etc/kubernetes/manifests ✖ k get pod -n kube-system 
+NAME                                   READY   STATUS    RESTARTS   AGE
+coredns-6f6c7df987-2d49x               1/1     Running   0          13m
+coredns-6f6c7df987-j44qx               1/1     Running   0          13m
+etcd-controlplane                      1/1     Running   0          13m
+kube-apiserver-controlplane            1/1     Running   0          13m
+kube-controller-manager-controlplane   1/1     Running   0          13m
+kube-proxy-rrnlc                       1/1     Running   0          13m
+kube-scheduler-controlplane            0/1     Running   0          15s
+
+controlplane /etc/kubernetes/manifests ➜  k get pod -n kube-system 
+NAME                                   READY   STATUS    RESTARTS   AGE
+coredns-6f6c7df987-2d49x               1/1     Running   0          13m
+coredns-6f6c7df987-j44qx               1/1     Running   0          13m
+etcd-controlplane                      1/1     Running   0          14m
+kube-apiserver-controlplane            1/1     Running   0          14m
+kube-controller-manager-controlplane   1/1     Running   0          14m
+kube-proxy-rrnlc                       1/1     Running   0          13m
+kube-scheduler-controlplane            1/1     Running   0          25s
+
+controlplane /etc/kubernetes/manifests ➜  
