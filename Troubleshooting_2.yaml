@@ -1,0 +1,636 @@
+--------------------------------------------------------------------------------
+**Troubleshooting Test 2:** The same 2 tier application is having issues again. It must display a green web page on success. Click on the app tab at the top of your terminal to view your application. It is currently failed. Troubleshoot and fix the issue.
+
+Stick to the given architecture. Use the same names and port numbers as given in the below architecture diagram. Feel free to edit, delete or recreate objects as necessary.
+--------------------------------------------------------------------------------
+controlplane ~ ➜  k get nodes
+NAME           STATUS   ROLES           AGE   VERSION
+controlplane   Ready    control-plane   28m   v1.35.0
+
+controlplane ~ ➜  k get pods -n kube-system 
+NAME                                   READY   STATUS    RESTARTS      AGE
+coredns-6f6c7df987-qf8wg               1/1     Running   0             28m
+coredns-6f6c7df987-tzvrl               1/1     Running   0             28m
+etcd-controlplane                      1/1     Running   0             28m
+kube-apiserver-controlplane            1/1     Running   0             28m
+kube-controller-manager-controlplane   1/1     Running   0             28m
+kube-proxy-r49fw                       0/1     Error     3 (52s ago)   70s
+kube-scheduler-controlplane            1/1     Running   0             28m
+
+controlplane ~ ➜  k get ns
+NAME              STATUS   AGE
+default           Active   28m
+kube-flannel      Active   9m5s
+kube-node-lease   Active   28m
+kube-public       Active   28m
+kube-system       Active   28m
+triton            Active   18m
+
+controlplane ~ ➜  k get po -n triton 
+NAME                           READY   STATUS    RESTARTS   AGE
+mysql                          1/1     Running   0          85s
+webapp-mysql-58c8d859b-8tgzq   1/1     Running   0          84s
+
+controlplane ~ ➜  k logs kube-proxy-r49fw -n kube-system
+E0921 08:33:36.861285       1 run.go:74] "command failed" err="failed complete: open /var/lib/kube-proxy/configuration.conf: no such file or directory"
+
+controlplane ~ ➜  k get svc -n triton 
+NAME          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+mysql         ClusterIP   172.20.140.46   <none>        3306/TCP         114s
+web-service   NodePort    172.20.132.88   <none>        8080:30081/TCP   113s
+
+controlplane ~ ➜  curl http://localhost:30081
+curl: (7) Failed to connect to localhost port 30081 after 3081 ms: No route to host
+
+controlplane ~ ✖ 
+
+controlplane ~ ✖ ls -ltr /var/lib/kube-proxy/configuration.conf
+ls: cannot access '/var/lib/kube-proxy/configuration.conf': No such file or directory
+
+controlplane ~ ✖ ls -ltr /var/lib/kube-proxy/
+total 4
+-rw-r--r-- 1 root root 405 Sep 21 08:14 kubeconfig.conf
+
+controlplane ~ ➜  k get deployments.apps -n kube-system
+NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+coredns   2/2     2            2           30m
+
+controlplane ~ ➜  k get deployments.apps coredns -n kube-system -o yaml | grep -i "/var/lib/kube-proxy/configuration.conf"
+
+controlplane ~ ✖ cd /etc/kubernetes/manifests/
+
+controlplane /etc/kubernetes/manifests ➜  
+
+controlplane /etc/kubernetes/manifests ➜   grep -i "/var/lib/kube-proxy/configuration.conf" *
+
+controlplane /etc/kubernetes/manifests ✖ cd /var/lib/
+
+controlplane /var/lib ➜  ls -ltr
+total 112
+drwxr-xr-x  2 root root 4096 Apr 18  2022 misc
+drwxr-xr-x  2 root root 4096 Jul  9  2025 git
+-rw-r--r--  1 root root    0 Feb 10  2026 shells.state
+drwxr-xr-x  4 root root 4096 Feb 18  2026 rancher
+drwxr-xr-x  2 root root 4096 Feb 18  2026 k0s
+drwx------  2 root root 4096 Feb 18  2026 docker
+drwxr-xr-x  2 root root 4096 Feb 18  2026 buildkit
+drwxr-xr-x  2 root root 4096 Feb 18  2026 python
+drwx------  2 root root 4096 Feb 18  2026 private
+drwx------  3 root root 4096 Feb 18  2026 polkit-1
+drwxr-xr-x  3 root root 4096 Feb 18  2026 vim
+drwxr-xr-x  3 root root 4096 Feb 18  2026 sudo
+drwxr-xr-x  2 root root 4096 Feb 18  2026 dbus
+drwxr-xr-x  1 root root 4096 Feb 18  2026 pam
+drwxr-xr-x  2 root root 4096 Feb 18  2026 man-db
+drwxr-xr-x  3 root root 4096 Feb 18  2026 ucf
+drwxr-xr-x  1 root root 4096 Sep 21 08:04 systemd
+drwxr-xr-x  1 root root 4096 Sep 21 08:04 PackageKit
+drwxr-xr-x  1 root root 4096 Sep 21 08:04 apt
+drwxr-xr-x  3 root root 4096 Sep 21 08:04 gems
+drwxr-xr-x  1 root root 4096 Sep 21 08:04 dpkg
+drwx------  1 root root 4096 Sep 21 08:04 containerd
+drwx------  3 root root 4096 Sep 21 08:04 etcd
+drwx------  5 root root 4096 Sep 21 08:04 cni
+drwxr-xr-x  2 root root 4096 Sep 21 08:14 kube-proxy
+drwxr-xr-x 10 root root 4096 Sep 21 08:33 kubelet
+
+controlplane /var/lib ➜  cd kube-proxy/
+
+controlplane /var/lib/kube-proxy ➜  ls -ltr
+total 4
+-rw-r--r-- 1 root root 405 Sep 21 08:14 kubeconfig.conf
+
+controlplane /var/lib/kube-proxy ➜  vi kubeconfig.conf 
+
+controlplane /var/lib/kube-proxy ➜  
+
+controlplane /var/lib/kube-proxy ➜  
+
+controlplane /var/lib/kube-proxy ➜  cd $HOME
+
+controlplane ~ ➜  k get svc -n kube-system 
+NAME       TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)                  AGE
+kube-dns   ClusterIP   172.20.0.10   <none>        53/UDP,53/TCP,9153/TCP   33m
+
+controlplane ~ ➜  k get svc kube-dns -n kube-system -o yaml
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{"prometheus.io/port":"9153","prometheus.io/scrape":"true"},"labels":{"k8s-app":"kube-dns","kubernetes.io/cluster-service":"true","kubernetes.io/name":"CoreDNS"},"name":"kube-dns","namespace":"kube-system","resourceVersion":"0"},"spec":{"clusterIP":"172.20.0.10","ports":[{"name":"dns","port":53,"protocol":"UDP","targetPort":53},{"name":"dns-tcp","port":53,"protocol":"TCP","targetPort":53},{"name":"metrics","port":9153,"protocol":"TCP","targetPort":9153}],"selector":{"k8s-app":"kube-dns"}}}
+    prometheus.io/port: "9153"
+    prometheus.io/scrape: "true"
+  creationTimestamp: "2026-09-21T08:04:26Z"
+  labels:
+    k8s-app: kube-dns
+    kubernetes.io/cluster-service: "true"
+    kubernetes.io/name: CoreDNS
+  name: kube-dns
+  namespace: kube-system
+  resourceVersion: "266"
+  uid: 10fcb8d4-00f5-42d3-891d-6f6d5a620b0c
+spec:
+  clusterIP: 172.20.0.10
+  clusterIPs:
+  - 172.20.0.10
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: dns
+    port: 53
+    protocol: UDP
+    targetPort: 53
+  - name: dns-tcp
+    port: 53
+    protocol: TCP
+    targetPort: 53
+  - name: metrics
+    port: 9153
+    protocol: TCP
+    targetPort: 9153
+  selector:
+    k8s-app: kube-dns
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get po -n kube-system 
+NAME                                   READY   STATUS             RESTARTS        AGE
+coredns-6f6c7df987-qf8wg               1/1     Running            0               35m
+coredns-6f6c7df987-tzvrl               1/1     Running            0               35m
+etcd-controlplane                      1/1     Running            0               35m
+kube-apiserver-controlplane            1/1     Running            0               35m
+kube-controller-manager-controlplane   1/1     Running            0               35m
+kube-proxy-r49fw                       0/1     CrashLoopBackOff   6 (2m20s ago)   8m7s
+kube-scheduler-controlplane            1/1     Running            0               35m
+
+controlplane ~ ➜  k get svc -n kube-system 
+NAME       TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)                  AGE
+kube-dns   ClusterIP   172.20.0.10   <none>        53/UDP,53/TCP,9153/TCP   35m
+
+controlplane ~ ➜  k get deployments.apps -n kube-system 
+NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+coredns   2/2     2            2           36m
+
+controlplane ~ ➜  k get svc -n kube-system -o yaml | grep -i "/var/lib/kube-proxy/configuration.conf"
+
+controlplane ~ ✖ k get svc kube-dns-n kube-system -o yaml | grep -i "/var/lib/kube-proxy/configuration.conf"
+Error from server (NotFound): services "kube-dns-n" not found
+Error from server (NotFound): services "kube-system" not found
+
+controlplane ~ ✖ k get svc kube-dns -n kube-system -o yaml | grep -i "/var/lib/kube-proxy/configuration.conf"
+
+controlplane ~ ✖ k get deployments.apps coredns -n kube-system -o yaml | grep -i "/var/lib/kube-proxy/configuration.conf"
+
+controlplane ~ ✖ k get pod kube-proxy-r49fw -n kube-system -o yaml | grep -i "/var/lib/kube-proxy/configuration.conf"
+    - --config=/var/lib/kube-proxy/configuration.conf
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get pod kube-proxy-r49fw -n kube-system -o yaml > proxy-pod.yaml
+
+controlplane ~ ➜  vi proxy-pod.yaml 
+
+controlplane ~ ➜  ls -ltr /var/lib/kube-proxy/configuration.conf
+ls: cannot access '/var/lib/kube-proxy/configuration.conf': No such file or directory
+
+controlplane ~ ✖ ls -ltr /var/lib/kube-proxy/.conf
+ls: cannot access '/var/lib/kube-proxy/.conf': No such file or directory
+
+controlplane ~ ✖ ls -ltr /var/lib/kube-proxy/*.conf
+-rw-r--r-- 1 root root 405 Sep 21 08:14 /var/lib/kube-proxy/kubeconfig.conf
+
+controlplane ~ ➜  vi proxy-pod.yaml 
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k delete pod kube-proxy-r49fw -n kube-system
+pod "kube-proxy-r49fw" deleted from kube-system namespace
+
+controlplane ~ ➜  k get po -n kube-system 
+NAME                                   READY   STATUS    RESTARTS      AGE
+coredns-6f6c7df987-qf8wg               1/1     Running   0             39m
+coredns-6f6c7df987-tzvrl               1/1     Running   0             39m
+etcd-controlplane                      1/1     Running   0             39m
+kube-apiserver-controlplane            1/1     Running   0             39m
+kube-controller-manager-controlplane   1/1     Running   0             39m
+kube-proxy-4l4tv                       0/1     Error     1 (12s ago)   13s
+kube-scheduler-controlplane            1/1     Running   0             39m
+
+controlplane ~ ➜  k edit pod kube-proxy-r49fw -n kube-system -o yaml 
+Error from server (NotFound): pods "kube-proxy-r49fw" not found
+
+controlplane ~ ✖ k edit pod kube-proxy-4l4tv -n kube-system -o yaml 
+error: pods "kube-proxy-4l4tv" is invalid
+A copy of your changes has been stored to "/tmp/kubectl-edit-3027212026.yaml"
+error: Edit cancelled, no valid changes were saved.
+
+controlplane ~ ✖ 
+
+controlplane ~ ✖ k apply -f /tmp/kubectl-edit-3027212026.yaml
+Warning: resource pods/kube-proxy-4l4tv is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply. kubectl apply should only be used on resources created declaratively by either kubectl create --save-config or kubectl apply. The missing annotation will be patched automatically.
+Error from server (Conflict): error when applying patch:
+{"metadata":{"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"kind\":\"Pod\",\"metadata\":{\"annotations\":{},\"creationTimestamp\":\"2026-09-21T08:43:44Z\",\"generateName\":\"kube-proxy-\",\"generation\":1,\"labels\":{\"controller-revision-hash\":\"8cb9fd598\",\"k8s-app\":\"kube-proxy\",\"pod-template-generation\":\"1\"},\"name\":\"kube-proxy-4l4tv\",\"namespace\":\"kube-system\",\"ownerReferences\":[{\"apiVersion\":\"apps/v1\",\"blockOwnerDeletion\":true,\"controller\":true,\"kind\":\"DaemonSet\",\"name\":\"kube-proxy\",\"uid\":\"e9531079-b1ff-44aa-a501-7fc1e8b6e9b6\"}],\"resourceVersion\":\"3946\",\"uid\":\"9311dcfc-51fb-4117-a9b0-03fde6c79162\"},\"spec\":{\"affinity\":{\"nodeAffinity\":{\"requiredDuringSchedulingIgnoredDuringExecution\":{\"nodeSelectorTerms\":[{\"matchFields\":[{\"key\":\"metadata.name\",\"operator\":\"In\",\"values\":[\"controlplane\"]}]}]}}},\"containers\":[{\"command\":[\"/usr/local/bin/kube-proxy\",\"--config=/var/lib/kube-proxy/kubeconfig.conf\",\"--hostname-override=$(NODE_NAME)\"],\"env\":[{\"name\":\"NODE_NAME\",\"valueFrom\":{\"fieldRef\":{\"apiVersion\":\"v1\",\"fieldPath\":\"spec.nodeName\"}}}],\"image\":\"registry.k8s.io/kube-proxy:v1.26.0\",\"imagePullPolicy\":\"IfNotPresent\",\"name\":\"kube-proxy\",\"resources\":{},\"securityContext\":{\"privileged\":true},\"terminationMessagePath\":\"/dev/termination-log\",\"terminationMessagePolicy\":\"File\",\"volumeMounts\":[{\"mountPath\":\"/var/lib/kube-proxy\",\"name\":\"kube-proxy\"},{\"mountPath\":\"/run/xtables.lock\",\"name\":\"xtables-lock\"},{\"mountPath\":\"/lib/modules\",\"name\":\"lib-modules\",\"readOnly\":true},{\"mountPath\":\"/var/run/secrets/kubernetes.io/serviceaccount\",\"name\":\"kube-api-access-7h8gn\",\"readOnly\":true}]}],\"dnsPolicy\":\"ClusterFirst\",\"enableServiceLinks\":true,\"hostNetwork\":true,\"nodeName\":\"controlplane\",\"nodeSelector\":{\"kubernetes.io/os\":\"linux\"},\"preemptionPolicy\":\"PreemptLowerPriority\",\"priority\":2000001000,\"priorityClassName\":\"system-node-critical\",\"restartPolicy\":\"Always\",\"schedulerName\":\"default-scheduler\",\"securityContext\":{},\"serviceAccount\":\"kube-proxy\",\"serviceAccountName\":\"kube-proxy\",\"terminationGracePeriodSeconds\":30,\"tolerations\":[{\"operator\":\"Exists\"},{\"effect\":\"NoExecute\",\"key\":\"node.kubernetes.io/not-ready\",\"operator\":\"Exists\"},{\"effect\":\"NoExecute\",\"key\":\"node.kubernetes.io/unreachable\",\"operator\":\"Exists\"},{\"effect\":\"NoSchedule\",\"key\":\"node.kubernetes.io/disk-pressure\",\"operator\":\"Exists\"},{\"effect\":\"NoSchedule\",\"key\":\"node.kubernetes.io/memory-pressure\",\"operator\":\"Exists\"},{\"effect\":\"NoSchedule\",\"key\":\"node.kubernetes.io/pid-pressure\",\"operator\":\"Exists\"},{\"effect\":\"NoSchedule\",\"key\":\"node.kubernetes.io/unschedulable\",\"operator\":\"Exists\"},{\"effect\":\"NoSchedule\",\"key\":\"node.kubernetes.io/network-unavailable\",\"operator\":\"Exists\"}],\"volumes\":[{\"configMap\":{\"defaultMode\":420,\"name\":\"kube-proxy\"},\"name\":\"kube-proxy\"},{\"hostPath\":{\"path\":\"/run/xtables.lock\",\"type\":\"FileOrCreate\"},\"name\":\"xtables-lock\"},{\"hostPath\":{\"path\":\"/lib/modules\",\"type\":\"\"},\"name\":\"lib-modules\"},{\"name\":\"kube-api-access-7h8gn\",\"projected\":{\"defaultMode\":420,\"sources\":[{\"serviceAccountToken\":{\"expirationSeconds\":3607,\"path\":\"token\"}},{\"configMap\":{\"items\":[{\"key\":\"ca.crt\",\"path\":\"ca.crt\"}],\"name\":\"kube-root-ca.crt\"}},{\"downwardAPI\":{\"items\":[{\"fieldRef\":{\"apiVersion\":\"v1\",\"fieldPath\":\"metadata.namespace\"},\"path\":\"namespace\"}]}}]}}]},\"status\":{\"conditions\":[{\"lastProbeTime\":null,\"lastTransitionTime\":\"2026-09-21T08:43:46Z\",\"observedGeneration\":1,\"status\":\"True\",\"type\":\"PodReadyToStartContainers\"},{\"lastProbeTime\":null,\"lastTransitionTime\":\"2026-09-21T08:43:44Z\",\"observedGeneration\":1,\"status\":\"True\",\"type\":\"Initialized\"},{\"lastProbeTime\":null,\"lastTransitionTime\":\"2026-09-21T08:43:44Z\",\"message\":\"containers with unready status: [kube-proxy]\",\"observedGeneration\":1,\"reason\":\"ContainersNotReady\",\"status\":\"False\",\"type\":\"Ready\"},{\"lastProbeTime\":null,\"lastTransitionTime\":\"2026-09-21T08:43:44Z\",\"message\":\"containers with unready status: [kube-proxy]\",\"observedGeneration\":1,\"reason\":\"ContainersNotReady\",\"status\":\"False\",\"type\":\"ContainersReady\"},{\"lastProbeTime\":null,\"lastTransitionTime\":\"2026-09-21T08:43:44Z\",\"observedGeneration\":1,\"status\":\"True\",\"type\":\"PodScheduled\"}],\"containerStatuses\":[{\"containerID\":\"containerd://778e909c88ec3b1c68c2a176f8607fa241215d8d3875d1232c36b681433510fe\",\"image\":\"registry.k8s.io/kube-proxy:v1.26.0\",\"imageID\":\"registry.k8s.io/kube-proxy@sha256:1e9bbe429e4e2b2ad32681c91deb98a334f1bf4135137df5f84f9d03689060fe\",\"lastState\":{\"terminated\":{\"containerID\":\"containerd://c36e95c95829cfb8fc92def73c1fdea513b24a4faa3d907a29eb693a55d2b8f4\",\"exitCode\":1,\"finishedAt\":\"2026-09-21T08:44:01Z\",\"reason\":\"Error\",\"startedAt\":\"2026-09-21T08:44:01Z\"}},\"name\":\"kube-proxy\",\"ready\":false,\"resources\":{},\"restartCount\":3,\"started\":false,\"state\":{\"terminated\":{\"containerID\":\"containerd://778e909c88ec3b1c68c2a176f8607fa241215d8d3875d1232c36b681433510fe\",\"exitCode\":1,\"finishedAt\":\"2026-09-21T08:44:23Z\",\"reason\":\"Error\",\"startedAt\":\"2026-09-21T08:44:23Z\"}},\"volumeMounts\":[{\"mountPath\":\"/var/lib/kube-proxy\",\"name\":\"kube-proxy\"},{\"mountPath\":\"/run/xtables.lock\",\"name\":\"xtables-lock\"},{\"mountPath\":\"/lib/modules\",\"name\":\"lib-modules\",\"readOnly\":true,\"recursiveReadOnly\":\"Disabled\"},{\"mountPath\":\"/var/run/secrets/kubernetes.io/serviceaccount\",\"name\":\"kube-api-access-7h8gn\",\"readOnly\":true,\"recursiveReadOnly\":\"Disabled\"}]}],\"hostIP\":\"10.244.83.214\",\"hostIPs\":[{\"ip\":\"10.244.83.214\"}],\"observedGeneration\":1,\"phase\":\"Running\",\"podIP\":\"10.244.83.214\",\"podIPs\":[{\"ip\":\"10.244.83.214\"}],\"qosClass\":\"BestEffort\",\"startTime\":\"2026-09-21T08:43:44Z\"}}\n"},"resourceVersion":"3946"},"spec":{"$setElementOrder/containers":[{"name":"kube-proxy"}],"containers":[{"command":["/usr/local/bin/kube-proxy","--config=/var/lib/kube-proxy/kubeconfig.conf","--hostname-override=$(NODE_NAME)"],"name":"kube-proxy"}]},"status":{"containerStatuses":[{"containerID":"containerd://778e909c88ec3b1c68c2a176f8607fa241215d8d3875d1232c36b681433510fe","image":"registry.k8s.io/kube-proxy:v1.26.0","imageID":"registry.k8s.io/kube-proxy@sha256:1e9bbe429e4e2b2ad32681c91deb98a334f1bf4135137df5f84f9d03689060fe","lastState":{"terminated":{"containerID":"containerd://c36e95c95829cfb8fc92def73c1fdea513b24a4faa3d907a29eb693a55d2b8f4","exitCode":1,"finishedAt":"2026-09-21T08:44:01Z","reason":"Error","startedAt":"2026-09-21T08:44:01Z"}},"name":"kube-proxy","ready":false,"resources":{},"restartCount":3,"started":false,"state":{"terminated":{"containerID":"containerd://778e909c88ec3b1c68c2a176f8607fa241215d8d3875d1232c36b681433510fe","exitCode":1,"finishedAt":"2026-09-21T08:44:23Z","reason":"Error","startedAt":"2026-09-21T08:44:23Z"}},"volumeMounts":[{"mountPath":"/var/lib/kube-proxy","name":"kube-proxy"},{"mountPath":"/run/xtables.lock","name":"xtables-lock"},{"mountPath":"/lib/modules","name":"lib-modules","readOnly":true,"recursiveReadOnly":"Disabled"},{"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount","name":"kube-api-access-7h8gn","readOnly":true,"recursiveReadOnly":"Disabled"}]}]}}
+to:
+Resource: "/v1, Resource=pods", GroupVersionKind: "/v1, Kind=Pod"
+Name: "kube-proxy-4l4tv", Namespace: "kube-system"
+for: "/tmp/kubectl-edit-3027212026.yaml": error when patching "/tmp/kubectl-edit-3027212026.yaml": Operation cannot be fulfilled on pods "kube-proxy-4l4tv": the object has been modified; please apply your changes to the latest version and try again
+
+controlplane ~ ✖ 
+
+controlplane ~ ✖ 
+
+controlplane ~ ✖ k get po -n kube-system 
+NAME                                   READY   STATUS    RESTARTS      AGE
+coredns-6f6c7df987-qf8wg               1/1     Running   0             41m
+coredns-6f6c7df987-tzvrl               1/1     Running   0             41m
+etcd-controlplane                      1/1     Running   0             41m
+kube-apiserver-controlplane            1/1     Running   0             41m
+kube-controller-manager-controlplane   1/1     Running   0             41m
+kube-proxy-4l4tv                       0/1     Error     4 (97s ago)   2m16s
+kube-scheduler-controlplane            1/1     Running   0             41m
+
+controlplane ~ ➜  k get deployments.apps -n kube-system -o yaml 
+apiVersion: v1
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "1"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"k8s-app":"kube-dns"},"name":"coredns","namespace":"kube-system"},"spec":{"replicas":2,"selector":{"matchLabels":{"k8s-app":"kube-dns"}},"strategy":{"rollingUpdate":{"maxUnavailable":1},"type":"RollingUpdate"},"template":{"metadata":{"labels":{"k8s-app":"kube-dns"}},"spec":{"affinity":{"podAntiAffinity":{"preferredDuringSchedulingIgnoredDuringExecution":[{"podAffinityTerm":{"labelSelector":{"matchExpressions":[{"key":"k8s-app","operator":"In","values":["kube-dns"]}]},"topologyKey":"kubernetes.io/hostname"},"weight":100}]}},"containers":[{"args":["-conf","/etc/coredns/Corefile"],"image":"registry.k8s.io/coredns/coredns:v1.10.1","imagePullPolicy":"IfNotPresent","livenessProbe":{"failureThreshold":5,"httpGet":{"path":"/health","port":8080,"scheme":"HTTP"},"initialDelaySeconds":60,"successThreshold":1,"timeoutSeconds":5},"name":"coredns","ports":[{"containerPort":53,"name":"dns","protocol":"UDP"},{"containerPort":53,"name":"dns-tcp","protocol":"TCP"},{"containerPort":9153,"name":"metrics","protocol":"TCP"}],"readinessProbe":{"httpGet":{"path":"/ready","port":8181,"scheme":"HTTP"}},"resources":{"limits":{"memory":"170Mi"},"requests":{"cpu":"100m","memory":"70Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"add":["NET_BIND_SERVICE"],"drop":["ALL"]},"readOnlyRootFilesystem":true},"volumeMounts":[{"mountPath":"/etc/coredns","name":"config-volume","readOnly":true}]}],"dnsPolicy":"Default","nodeSelector":{"kubernetes.io/os":"linux"},"priorityClassName":"system-cluster-critical","serviceAccountName":"coredns","tolerations":[{"key":"CriticalAddonsOnly","operator":"Exists"},{"effect":"NoSchedule","key":"node-role.kubernetes.io/control-plane"}],"volumes":[{"configMap":{"items":[{"key":"Corefile","path":"Corefile"}],"name":"coredns"},"name":"config-volume"}]}}}}
+    creationTimestamp: "2026-09-21T08:04:26Z"
+    generation: 2
+    labels:
+      k8s-app: kube-dns
+    name: coredns
+    namespace: kube-system
+    resourceVersion: "476"
+    uid: e1f54178-2efc-4ac9-97dc-75021752bfb4
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 2
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        k8s-app: kube-dns
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 1
+      type: RollingUpdate
+    template:
+      metadata:
+        labels:
+          k8s-app: kube-dns
+      spec:
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                  - key: k8s-app
+                    operator: In
+                    values:
+                    - kube-dns
+                topologyKey: kubernetes.io/hostname
+              weight: 100
+        containers:
+        - args:
+          - -conf
+          - /etc/coredns/Corefile
+          image: registry.k8s.io/coredns/coredns:v1.10.1
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: coredns
+          ports:
+          - containerPort: 53
+            name: dns
+            protocol: UDP
+          - containerPort: 53
+            name: dns-tcp
+            protocol: TCP
+          - containerPort: 9153
+            name: metrics
+            protocol: TCP
+          - containerPort: 8080
+            name: liveness-probe
+            protocol: TCP
+          - containerPort: 8181
+            name: readiness-probe
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /ready
+              port: 8181
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              memory: 170Mi
+            requests:
+              cpu: 100m
+              memory: 70Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              add:
+              - NET_BIND_SERVICE
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /etc/coredns
+            name: config-volume
+            readOnly: true
+        dnsPolicy: Default
+        nodeSelector:
+          kubernetes.io/os: linux
+        priorityClassName: system-cluster-critical
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: coredns
+        serviceAccountName: coredns
+        terminationGracePeriodSeconds: 30
+        tolerations:
+        - key: CriticalAddonsOnly
+          operator: Exists
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+        volumes:
+        - configMap:
+            defaultMode: 420
+            items:
+            - key: Corefile
+              path: Corefile
+            name: coredns
+          name: config-volume
+  status:
+    availableReplicas: 2
+    conditions:
+    - lastTransitionTime: "2026-09-21T08:05:00Z"
+      lastUpdateTime: "2026-09-21T08:05:00Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2026-09-21T08:04:33Z"
+      lastUpdateTime: "2026-09-21T08:05:02Z"
+      message: ReplicaSet "coredns-6f6c7df987" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 2
+    readyReplicas: 2
+    replicas: 2
+    terminatingReplicas: 0
+    updatedReplicas: 2
+kind: List
+metadata:
+  resourceVersion: ""
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  k get deployments.apps -n kube-system -o yaml | grep -i conf
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"k8s-app":"kube-dns"},"name":"coredns","namespace":"kube-system"},"spec":{"replicas":2,"selector":{"matchLabels":{"k8s-app":"kube-dns"}},"strategy":{"rollingUpdate":{"maxUnavailable":1},"type":"RollingUpdate"},"template":{"metadata":{"labels":{"k8s-app":"kube-dns"}},"spec":{"affinity":{"podAntiAffinity":{"preferredDuringSchedulingIgnoredDuringExecution":[{"podAffinityTerm":{"labelSelector":{"matchExpressions":[{"key":"k8s-app","operator":"In","values":["kube-dns"]}]},"topologyKey":"kubernetes.io/hostname"},"weight":100}]}},"containers":[{"args":["-conf","/etc/coredns/Corefile"],"image":"registry.k8s.io/coredns/coredns:v1.10.1","imagePullPolicy":"IfNotPresent","livenessProbe":{"failureThreshold":5,"httpGet":{"path":"/health","port":8080,"scheme":"HTTP"},"initialDelaySeconds":60,"successThreshold":1,"timeoutSeconds":5},"name":"coredns","ports":[{"containerPort":53,"name":"dns","protocol":"UDP"},{"containerPort":53,"name":"dns-tcp","protocol":"TCP"},{"containerPort":9153,"name":"metrics","protocol":"TCP"}],"readinessProbe":{"httpGet":{"path":"/ready","port":8181,"scheme":"HTTP"}},"resources":{"limits":{"memory":"170Mi"},"requests":{"cpu":"100m","memory":"70Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"add":["NET_BIND_SERVICE"],"drop":["ALL"]},"readOnlyRootFilesystem":true},"volumeMounts":[{"mountPath":"/etc/coredns","name":"config-volume","readOnly":true}]}],"dnsPolicy":"Default","nodeSelector":{"kubernetes.io/os":"linux"},"priorityClassName":"system-cluster-critical","serviceAccountName":"coredns","tolerations":[{"key":"CriticalAddonsOnly","operator":"Exists"},{"effect":"NoSchedule","key":"node-role.kubernetes.io/control-plane"}],"volumes":[{"configMap":{"items":[{"key":"Corefile","path":"Corefile"}],"name":"coredns"},"name":"config-volume"}]}}}}
+          - -conf
+            name: config-volume
+        - configMap:
+          name: config-volume
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  cd /etc/kubernetes/manifests/
+
+controlplane /etc/kubernetes/manifests ➜  ls -ltr
+total 16
+-rw------- 1 root root 2610 Sep 21 08:04 etcd.yaml
+-rw------- 1 root root 3960 Sep 21 08:04 kube-apiserver.yaml
+-rw------- 1 root root 1726 Sep 21 08:04 kube-scheduler.yaml
+-rw------- 1 root root 3459 Sep 21 08:04 kube-controller-manager.yaml
+
+controlplane /etc/kubernetes/manifests ➜  kubectl -n kube-system edit ds kube-proxy
+daemonset.apps/kube-proxy edited
+
+controlplane /etc/kubernetes/manifests ➜  k get po -n kube-system 
+NAME                                   READY   STATUS    RESTARTS      AGE
+coredns-6f6c7df987-qf8wg               1/1     Running   0             44m
+coredns-6f6c7df987-tzvrl               1/1     Running   0             44m
+etcd-controlplane                      1/1     Running   0             44m
+kube-apiserver-controlplane            1/1     Running   0             44m
+kube-controller-manager-controlplane   1/1     Running   0             44m
+kube-proxy-zxf65                       0/1     Error     2 (20s ago)   21s
+kube-scheduler-controlplane            1/1     Running   0             44m
+
+controlplane /etc/kubernetes/manifests ➜  k get configmap -n kube-system kube-proxy -o yaml
+apiVersion: v1
+data:
+  config.conf: |-
+    apiVersion: kubeproxy.config.k8s.io/v1alpha1
+    bindAddress: 0.0.0.0
+    bindAddressHardFail: false
+    clientConnection:
+      acceptContentTypes: ""
+      burst: 0
+      contentType: ""
+      kubeconfig: /var/lib/kube-proxy/kubeconfig.conf
+      qps: 0
+    clusterCIDR: 172.17.0.0/16
+    configSyncPeriod: 0s
+    conntrack:
+      maxPerCore: null
+      min: null
+      tcpBeLiberal: false
+      tcpCloseWaitTimeout: null
+      tcpEstablishedTimeout: null
+      udpStreamTimeout: 0s
+      udpTimeout: 0s
+    detectLocal:
+      bridgeInterface: ""
+      interfaceNamePrefix: ""
+    detectLocalMode: ""
+    enableProfiling: false
+    healthzBindAddress: ""
+    hostnameOverride: ""
+    iptables:
+      localhostNodePorts: null
+      masqueradeAll: false
+      masqueradeBit: null
+      minSyncPeriod: 0s
+      syncPeriod: 0s
+    ipvs:
+      excludeCIDRs: null
+      minSyncPeriod: 0s
+      scheduler: ""
+      strictARP: false
+      syncPeriod: 0s
+      tcpFinTimeout: 0s
+      tcpTimeout: 0s
+      udpTimeout: 0s
+    kind: KubeProxyConfiguration
+    logging:
+      flushFrequency: 0
+      options:
+        json:
+          infoBufferSize: "0"
+        text:
+          infoBufferSize: "0"
+      verbosity: 0
+    metricsBindAddress: ""
+    mode: ""
+    nftables:
+      masqueradeAll: false
+      masqueradeBit: null
+      minSyncPeriod: 0s
+      syncPeriod: 0s
+    nodePortAddresses: null
+    oomScoreAdj: null
+    portRange: ""
+    showHiddenMetricsForVersion: ""
+    winkernel:
+      enableDSR: false
+      forwardHealthCheckVip: false
+      networkName: ""
+      rootHnsEndpointName: ""
+      sourceVip: ""
+  kubeconfig.conf: |-
+    apiVersion: v1
+    kind: Config
+    clusters:
+    - cluster:
+        certificate-authority: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        server: https://controlplane:6443
+      name: default
+    contexts:
+    - context:
+        cluster: default
+        namespace: default
+        user: default
+      name: default
+    current-context: default
+    users:
+    - name: default
+      user:
+        tokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+kind: ConfigMap
+metadata:
+  annotations:
+    kubeadm.kubernetes.io/component-config.hash: sha256:18238492c66d85cd87676223875eea97e931abd5bf402617aac40cede13ab4d3
+  creationTimestamp: "2026-09-21T08:04:26Z"
+  labels:
+    app: kube-proxy
+  name: kube-proxy
+  namespace: kube-system
+  resourceVersion: "236"
+  uid: 024d94fe-b67b-46a6-9d9b-1d7992a923ee
+
+controlplane /etc/kubernetes/manifests ➜  kubectl -n kube-system describe ds kube-proxy
+Name:           kube-proxy
+Namespace:      kube-system
+Selector:       k8s-app=kube-proxy
+Node-Selector:  kubernetes.io/os=linux
+Labels:         k8s-app=kube-proxy
+Annotations:    deprecated.daemonset.template.generation: 2
+Desired Number of Nodes Scheduled: 1
+Current Number of Nodes Scheduled: 1
+Number of Nodes Scheduled with Up-to-date Pods: 1
+Number of Nodes Scheduled with Available Pods: 0
+Number of Nodes Misscheduled: 0
+Pods Status:  1 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:           k8s-app=kube-proxy
+  Service Account:  kube-proxy
+  Containers:
+   kube-proxy:
+    Image:      registry.k8s.io/kube-proxy:v1.26.0
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      /usr/local/bin/kube-proxy
+      --config=/var/lib/kube-proxy/kubeconfig.conf
+      --hostname-override=$(NODE_NAME)
+    Environment:
+      NODE_NAME:   (v1:spec.nodeName)
+    Mounts:
+      /lib/modules from lib-modules (ro)
+      /run/xtables.lock from xtables-lock (rw)
+      /var/lib/kube-proxy from kube-proxy (rw)
+  Volumes:
+   kube-proxy:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      kube-proxy
+    Optional:  false
+   xtables-lock:
+    Type:          HostPath (bare host directory volume)
+    Path:          /run/xtables.lock
+    HostPathType:  FileOrCreate
+   lib-modules:
+    Type:               HostPath (bare host directory volume)
+    Path:               /lib/modules
+    HostPathType:       
+  Priority Class Name:  system-node-critical
+  Node-Selectors:       kubernetes.io/os=linux
+  Tolerations:          op=Exists
+Events:
+  Type    Reason            Age    From                  Message
+  ----    ------            ----   ----                  -------
+  Normal  SuccessfulCreate  18m    daemonset-controller  Created pod: kube-proxy-r49fw
+  Normal  SuccessfulCreate  6m35s  daemonset-controller  Created pod: kube-proxy-4l4tv
+  Normal  SuccessfulDelete  2m1s   daemonset-controller  Deleted pod: kube-proxy-4l4tv
+  Normal  SuccessfulCreate  2m1s   daemonset-controller  Created pod: kube-proxy-zxf65
+
+controlplane /etc/kubernetes/manifests ➜  
+
+controlplane /etc/kubernetes/manifests ➜  k get po -n kube-system 
+NAME                                   READY   STATUS    RESTARTS       AGE
+coredns-6f6c7df987-qf8wg               1/1     Running   0              46m
+coredns-6f6c7df987-tzvrl               1/1     Running   0              46m
+etcd-controlplane                      1/1     Running   0              46m
+kube-apiserver-controlplane            1/1     Running   0              46m
+kube-controller-manager-controlplane   1/1     Running   0              46m
+kube-proxy-zxf65                       0/1     Error     4 (118s ago)   2m36s
+kube-scheduler-controlplane            1/1     Running   0              46m
+
+controlplane /etc/kubernetes/manifests ➜  k logs kube-proxy-zxf65 -n kube-system 
+E0921 08:51:16.909569       1 run.go:74] "command failed" err="failed complete: failed to decode: no kind \"Config\" is registered for version \"v1\" in scheme \"pkg/proxy/apis/config/scheme/scheme.go:29\""
+
+controlplane /etc/kubernetes/manifests ➜  kubectl -n kube-system edit ds kube-proxy
+daemonset.apps/kube-proxy edited
+
+controlplane /etc/kubernetes/manifests ➜  
+
+controlplane /etc/kubernetes/manifests ➜  k get po -n kube-system 
+NAME                                   READY   STATUS    RESTARTS   AGE
+coredns-6f6c7df987-qf8wg               1/1     Running   0          47m
+coredns-6f6c7df987-tzvrl               1/1     Running   0          47m
+etcd-controlplane                      1/1     Running   0          47m
+kube-apiserver-controlplane            1/1     Running   0          47m
+kube-controller-manager-controlplane   1/1     Running   0          47m
+kube-proxy-hwbtz                       1/1     Running   0          9s
+kube-scheduler-controlplane            1/1     Running   0          47m
