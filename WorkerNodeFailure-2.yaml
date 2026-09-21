@@ -1,0 +1,229 @@
+----------------------------------------------------------------------------------
+workernode failure -2
+
+----------------------------------------------------------------------------------
+
+
+controlplane ~ ➜  k get nodes
+NAME           STATUS     ROLES           AGE   VERSION
+controlplane   Ready      control-plane   26m   v1.35.0
+node01         NotReady   <none>          25m   v1.35.0
+
+controlplane ~ ➜  ssh node01
+Welcome to Ubuntu 22.04.5 LTS (GNU/Linux 6.8.0-90-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+This system has been minimized by removing packages and content that are
+not required on a system that users do not log into.
+
+To restore this content, you can run the 'unminimize' command.
+Last login: Mon Sep 21 07:13:31 2026 from 10.244.34.196
+
+node01 ~ ➜  journalctl -u kubelet.service -f
+Sep 21 07:22:15 node01 kubelet[24582]: E0921 07:22:15.683373   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:15 node01 kubelet[24582]: E0921 07:22:15.784679   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:15 node01 kubelet[24582]: E0921 07:22:15.886687   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:15 node01 kubelet[24582]: E0921 07:22:15.988626   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:15 node01 kubelet[24582]: I0921 07:22:15.997301   24582 kubelet_node_status.go:74] "Attempting to register node" node="node01"
+Sep 21 07:22:15 node01 kubelet[24582]: E0921 07:22:15.997768   24582 controller.go:201] "Failed to ensure lease exists, will retry" err="Get \"https://controlplane:6553/apis/coordination.k8s.io/v1/namespaces/kube-node-lease/leases/node01?timeout=10s\": dial tcp 10.244.34.196:6553: connect: connection refused" interval="7s"
+Sep 21 07:22:15 node01 kubelet[24582]: E0921 07:22:15.998229   24582 kubelet_node_status.go:106] "Unable to register node with API server" err="Post \"https://controlplane:6553/api/v1/nodes\": dial tcp 10.244.34.196:6553: connect: connection refused" node="node01"
+Sep 21 07:22:16 node01 kubelet[24582]: E0921 07:22:16.090710   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:16 node01 kubelet[24582]: E0921 07:22:16.192932   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:16 node01 kubelet[24582]: E0921 07:22:16.295380   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:16 node01 kubelet[24582]: E0921 07:22:16.396723   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:16 node01 kubelet[24582]: E0921 07:22:16.498519   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:16 node01 kubelet[24582]: E0921 07:22:16.600201   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:16 node01 kubelet[24582]: E0921 07:22:16.703071   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:16 node01 kubelet[24582]: E0921 07:22:16.804526   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:16 node01 kubelet[24582]: E0921 07:22:16.905972   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:17 node01 kubelet[24582]: E0921 07:22:17.007407   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:17 node01 kubelet[24582]: E0921 07:22:17.109307   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:17 node01 kubelet[24582]: E0921 07:22:17.210792   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:17 node01 kubelet[24582]: E0921 07:22:17.313054   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:17 node01 kubelet[24582]: E0921 07:22:17.414519   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:17 node01 kubelet[24582]: E0921 07:22:17.516274   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:17 node01 kubelet[24582]: E0921 07:22:17.617955   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:17 node01 kubelet[24582]: E0921 07:22:17.719515   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:17 node01 kubelet[24582]: E0921 07:22:17.821704   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:17 node01 kubelet[24582]: E0921 07:22:17.923147   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:18 node01 kubelet[24582]: E0921 07:22:18.024790   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:18 node01 kubelet[24582]: E0921 07:22:18.127675   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:18 node01 kubelet[24582]: E0921 07:22:18.229383   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:18 node01 kubelet[24582]: E0921 07:22:18.330662   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:18 node01 kubelet[24582]: E0921 07:22:18.432007   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:18 node01 kubelet[24582]: E0921 07:22:18.533731   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:18 node01 kubelet[24582]: E0921 07:22:18.635881   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+Sep 21 07:22:18 node01 kubelet[24582]: E0921 07:22:18.738111   24582 reconstruct.go:188] "Failed to get Node status to reconstruct device paths" err="Get \"https://controlplane:6553/api/v1/nodes/node01\": dial tcp 10.244.34.196:6553: connect: connection refused"
+^C
+
+node01 ~ ✖ systemctl status kubelet.service 
+● kubelet.service - kubelet: The Kubernetes Node Agent
+     Loaded: loaded (/lib/systemd/system/kubelet.service; enabled; vendor preset: enabled)
+    Drop-In: /usr/lib/systemd/system/kubelet.service.d
+             └─10-kubeadm.conf
+     Active: active (running) since Mon 2026-09-21 07:20:50 UTC; 1min 50s ago
+       Docs: https://kubernetes.io/docs/
+   Main PID: 24582 (kubelet)
+      Tasks: 23 (limit: 75883)
+     Memory: 28.8M
+        CPU: 1.716s
+     CGroup: /system.slice/kubelet.service
+             └─24582 /usr/bin/kubelet --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernete>
+
+Sep 21 07:22:39 node01 kubelet[24582]: E0921 07:22:39.127542   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+Sep 21 07:22:39 node01 kubelet[24582]: E0921 07:22:39.230568   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+Sep 21 07:22:39 node01 kubelet[24582]: E0921 07:22:39.332870   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+Sep 21 07:22:39 node01 kubelet[24582]: E0921 07:22:39.434891   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+Sep 21 07:22:39 node01 kubelet[24582]: E0921 07:22:39.537034   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+Sep 21 07:22:39 node01 kubelet[24582]: E0921 07:22:39.638769   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+Sep 21 07:22:39 node01 kubelet[24582]: E0921 07:22:39.740316   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+Sep 21 07:22:39 node01 kubelet[24582]: E0921 07:22:39.841822   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+Sep 21 07:22:39 node01 kubelet[24582]: E0921 07:22:39.943365   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+Sep 21 07:22:40 node01 kubelet[24582]: E0921 07:22:40.045157   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+
+
+node01 ~ ✖ systemctl status containerd.service 
+● containerd.service - containerd container runtime
+     Loaded: loaded (/lib/systemd/system/containerd.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2026-09-21 06:55:46 UTC; 27min ago
+       Docs: https://containerd.io
+   Main PID: 989 (containerd)
+      Tasks: 48
+     Memory: 42.0M
+        CPU: 3.111s
+     CGroup: /system.slice/containerd.service
+             ├─ 989 /usr/bin/containerd
+             ├─2220 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id 694fd5a8641356754a93c5a737b6db6d38503e3a29e009ce91d7>
+             └─2236 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id 92a717f742a712fb75550863a5f2e8ed7e66edc279473c038291>
+
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.022832174Z" level=info msg="StartContainer for \"c7c754907e14>
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.542376332Z" level=info msg="shim disconnected" id=c7c754907e1>
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.542439921Z" level=warning msg="cleaning up after shim disconn>
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.542449731Z" level=info msg="cleaning up dead shim" namespace=>
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.831420006Z" level=info msg="CreateContainer within sandbox \">
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.853473815Z" level=info msg="CreateContainer within sandbox \">
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.853823971Z" level=info msg="StartContainer for \"3fd50c00553e>
+Sep 21 06:56:25 node01 containerd[989]: time="2026-09-21T06:56:25.018286195Z" level=info msg="StartContainer for \"3fd50c00553e>
+Sep 21 07:11:46 node01 containerd[989]: time="2026-09-21T07:11:46.833895880Z" level=info msg="No cni config template is specifi>
+Sep 21 07:20:32 node01 containerd[989]: time="2026-09-21T07:20:32.707269589Z" level=info msg="No cni config template is specifi>
+
+
+node01 ~ ✖ 
+
+node01 ~ ✖ 
+
+node01 ~ ✖ cd /etc/kubernetes/manifests/
+
+node01 /etc/kubernetes/manifests ➜  ls -ltr
+total 0
+
+node01 /etc/kubernetes/manifests ➜  cd ..
+
+node01 /etc/kubernetes ➜  ls -ltr
+total 12
+drwxrwxr-x 2 root root 4096 Feb 18  2026 manifests
+drwxr-xr-x 2 root root 4096 Sep 21 06:56 pki
+-rw------- 1 root root 1945 Sep 21 07:20 kubelet.conf
+
+node01 /etc/kubernetes ➜  vi kubelet.conf 
+
+node01 /etc/kubernetes ➜  vi kubelet.conf 
+
+node01 /etc/kubernetes ➜  
+
+node01 /etc/kubernetes ➜  systemctl status containerd.service 
+● containerd.service - containerd container runtime
+     Loaded: loaded (/lib/systemd/system/containerd.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2026-09-21 06:55:46 UTC; 30min ago
+       Docs: https://containerd.io
+   Main PID: 989 (containerd)
+      Tasks: 48
+     Memory: 42.2M
+        CPU: 3.453s
+     CGroup: /system.slice/containerd.service
+             ├─ 989 /usr/bin/containerd
+             ├─2220 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id 694fd5a8641356754a93c5a737b6db6d38503e3a29e009ce91d7>
+             └─2236 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id 92a717f742a712fb75550863a5f2e8ed7e66edc279473c038291>
+
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.022832174Z" level=info msg="StartContainer for \"c7c754907e14>
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.542376332Z" level=info msg="shim disconnected" id=c7c754907e1>
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.542439921Z" level=warning msg="cleaning up after shim disconn>
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.542449731Z" level=info msg="cleaning up dead shim" namespace=>
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.831420006Z" level=info msg="CreateContainer within sandbox \">
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.853473815Z" level=info msg="CreateContainer within sandbox \">
+Sep 21 06:56:24 node01 containerd[989]: time="2026-09-21T06:56:24.853823971Z" level=info msg="StartContainer for \"3fd50c00553e>
+Sep 21 06:56:25 node01 containerd[989]: time="2026-09-21T06:56:25.018286195Z" level=info msg="StartContainer for \"3fd50c00553e>
+Sep 21 07:11:46 node01 containerd[989]: time="2026-09-21T07:11:46.833895880Z" level=info msg="No cni config template is specifi>
+Sep 21 07:20:32 node01 containerd[989]: time="2026-09-21T07:20:32.707269589Z" level=info msg="No cni config template is specifi>
+lines 1-23/23 (END)
+
+systemctl status containevi kubelet.conf ^C
+
+node01 /etc/kubernetes ✖ systemctl status kubelet.service 
+● kubelet.service - kubelet: The Kubernetes Node Agent
+     Loaded: loaded (/lib/systemd/system/kubelet.service; enabled; vendor preset: enabled)
+    Drop-In: /usr/lib/systemd/system/kubelet.service.d
+             └─10-kubeadm.conf
+     Active: active (running) since Mon 2026-09-21 07:20:50 UTC; 5min ago
+       Docs: https://kubernetes.io/docs/
+   Main PID: 24582 (kubelet)
+      Tasks: 23 (limit: 75883)
+     Memory: 31.3M
+        CPU: 4.954s
+     CGroup: /system.slice/kubelet.service
+             └─24582 /usr/bin/kubelet --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernete>
+
+Sep 21 07:26:18 node01 kubelet[24582]: E0921 07:26:18.884421   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+Sep 21 07:26:18 node01 kubelet[24582]: E0921 07:26:18.985825   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+Sep 21 07:26:19 node01 kubelet[24582]: E0921 07:26:19.088272   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+Sep 21 07:26:19 node01 kubelet[24582]: E0921 07:26:19.190462   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+Sep 21 07:26:19 node01 kubelet[24582]: E0921 07:26:19.292011   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+Sep 21 07:26:19 node01 kubelet[24582]: E0921 07:26:19.393637   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+Sep 21 07:26:19 node01 kubelet[24582]: E0921 07:26:19.495436   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+Sep 21 07:26:19 node01 kubelet[24582]: E0921 07:26:19.597374   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+Sep 21 07:26:19 node01 kubelet[24582]: E0921 07:26:19.700141   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+Sep 21 07:26:19 node01 kubelet[24582]: E0921 07:26:19.801559   24582 reconstruct.go:188] "Failed to get Node status to reconstr>
+
+
+node01 /etc/kubernetes ✖ systemctl restart kubelet.service 
+
+node01 /etc/kubernetes ➜  systemctl status kubelet.service 
+● kubelet.service - kubelet: The Kubernetes Node Agent
+     Loaded: loaded (/lib/systemd/system/kubelet.service; enabled; vendor preset: enabled)
+    Drop-In: /usr/lib/systemd/system/kubelet.service.d
+             └─10-kubeadm.conf
+     Active: active (running) since Mon 2026-09-21 07:26:40 UTC; 9s ago
+       Docs: https://kubernetes.io/docs/
+   Main PID: 27435 (kubelet)
+      Tasks: 22 (limit: 75883)
+     Memory: 23.5M
+        CPU: 202ms
+     CGroup: /system.slice/kubelet.service
+             └─27435 /usr/bin/kubelet --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernete>
+
+Sep 21 07:26:40 node01 kubelet[27435]: I0921 07:26:40.410920   27435 kubelet_node_status.go:123] "Node was previously registere>
+Sep 21 07:26:40 node01 kubelet[27435]: I0921 07:26:40.410992   27435 kubelet_node_status.go:77] "Successfully registered node" >
+Sep 21 07:26:41 node01 kubelet[27435]: I0921 07:26:41.158380   27435 apiserver.go:52] "Watching apiserver"
+Sep 21 07:26:41 node01 kubelet[27435]: I0921 07:26:41.183327   27435 desired_state_of_world_populator.go:154] "Finished populat>
+Sep 21 07:26:41 node01 kubelet[27435]: I0921 07:26:41.190364   27435 reconciler_common.go:251] "operationExecutor.VerifyControl>
+Sep 21 07:26:41 node01 kubelet[27435]: I0921 07:26:41.190394   27435 reconciler_common.go:251] "operationExecutor.VerifyControl>
+Sep 21 07:26:41 node01 kubelet[27435]: I0921 07:26:41.190413   27435 reconciler_common.go:251] "operationExecutor.VerifyControl>
+Sep 21 07:26:41 node01 kubelet[27435]: I0921 07:26:41.190419   27435 reconciler_common.go:251] "operationExecutor.VerifyControl>
+Sep 21 07:26:41 node01 kubelet[27435]: I0921 07:26:41.190426   27435 reconciler_common.go:251] "operationExecutor.VerifyControl>
+Sep 21 07:26:41 node01 kubelet[27435]: I0921 07:26:41.190438   27435 reconciler_common.go:251] "operationExecutor.VerifyControl>
+lines 1-23/23 (END)
+
+^C
+
+node01 /etc/kubernetes ✖ logout
+Connection to node01 closed.
+
+controlplane ~ ✖ k get nodes
+NAME           STATUS   ROLES           AGE   VERSION
+controlplane   Ready    control-plane   34m   v1.35.0
+node01         Ready    <none>          34m   v1.35.0
+
+controlplane ~ ➜  
