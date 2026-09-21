@@ -1,0 +1,310 @@
+----------------------------------------------------------------------------------
+Control Plane failure -2
+
+----------------------------------------------------------------------------------
+
+controlplane ~ ➜  k get pod -n kube-system 
+NAME                                   READY   STATUS             RESTARTS      AGE
+coredns-6f6c7df987-2d49x               1/1     Running            0             27m
+coredns-6f6c7df987-j44qx               1/1     Running            0             27m
+etcd-controlplane                      1/1     Running            0             27m
+kube-apiserver-controlplane            1/1     Running            0             27m
+kube-controller-manager-controlplane   0/1     CrashLoopBackOff   2 (17s ago)   29s
+kube-proxy-rrnlc                       1/1     Running            0             27m
+kube-scheduler-controlplane            1/1     Running            0             13m
+
+controlplane ~ ➜  k get pod 
+NAME                 READY   STATUS    RESTARTS   AGE
+app-5497957c-dsq8v   1/1     Running   0          2m47s
+app-5497957c-lklgz   1/1     Running   0          17m
+
+controlplane ~ ➜  k logs kube-controller-manager-controlplane -n kube-system 
+I0921 06:50:57.779839       1 serving.go:386] Generated self-signed cert in-memory
+E0921 06:50:57.781316       1 run.go:72] "command failed" err="unable to load client CA provider: open /etc/kubernetes/pki/ca.crt: no such file or directory"
+
+controlplane ~ ➜  ls -ltr /etc/kubernetes/pki/ca.crt 
+-rw-r--r-- 1 root root 1107 Sep 21 06:23 /etc/kubernetes/pki/ca.crt
+
+controlplane ~ ➜  k describe pod kube-controller-manager-controlplane  -n kube-system
+Name:                 kube-controller-manager-controlplane
+Namespace:            kube-system
+Priority:             2000001000
+Priority Class Name:  system-node-critical
+Node:                 controlplane/10.244.253.150
+Start Time:           Mon, 21 Sep 2026 06:23:26 +0000
+Labels:               component=kube-controller-manager
+                      tier=control-plane
+Annotations:          kubernetes.io/config.hash: 0b51a099e96c05a6fa24d63c74e994fa
+                      kubernetes.io/config.mirror: 0b51a099e96c05a6fa24d63c74e994fa
+                      kubernetes.io/config.seen: 2026-09-21T06:50:08.281689622Z
+                      kubernetes.io/config.source: file
+Status:               Running
+SeccompProfile:       RuntimeDefault
+IP:                   10.244.253.150
+IPs:
+  IP:           10.244.253.150
+Controlled By:  Node/controlplane
+Containers:
+  kube-controller-manager:
+    Container ID:  containerd://6b90011caa4928154b36f6ab3b16172b319b288dbf0c0d9c1aae51ab38bab6c7
+    Image:         registry.k8s.io/kube-controller-manager:v1.35.0
+    Image ID:      registry.k8s.io/kube-controller-manager@sha256:3e343fd915d2e214b9a68c045b94017832927edb89aafa471324f8d05a191111
+    Port:          10257/TCP (probe-port)
+    Host Port:     10257/TCP (probe-port)
+    Command:
+      kube-controller-manager
+      --allocate-node-cidrs=true
+      --authentication-kubeconfig=/etc/kubernetes/controller-manager.conf
+      --authorization-kubeconfig=/etc/kubernetes/controller-manager.conf
+      --bind-address=127.0.0.1
+      --client-ca-file=/etc/kubernetes/pki/ca.crt
+      --cluster-cidr=172.17.0.0/16
+      --cluster-name=kubernetes
+      --cluster-signing-cert-file=/etc/kubernetes/pki/ca.crt
+      --cluster-signing-key-file=/etc/kubernetes/pki/ca.key
+      --controllers=*,bootstrapsigner,tokencleaner
+      --kubeconfig=/etc/kubernetes/controller-manager.conf
+      --leader-elect=true
+      --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt
+      --root-ca-file=/etc/kubernetes/pki/ca.crt
+      --service-account-private-key-file=/etc/kubernetes/pki/sa.key
+      --service-cluster-ip-range=172.20.0.0/16
+      --use-service-account-credentials=true
+    State:          Waiting
+      Reason:       CrashLoopBackOff
+    Last State:     Terminated
+      Reason:       Error
+      Exit Code:    1
+      Started:      Mon, 21 Sep 2026 06:51:48 +0000
+      Finished:     Mon, 21 Sep 2026 06:51:48 +0000
+    Ready:          False
+    Restart Count:  4
+    Requests:
+      cpu:        200m
+    Liveness:     http-get https://127.0.0.1:probe-port/healthz delay=10s timeout=15s period=10s #success=1 #failure=8
+    Startup:      http-get https://127.0.0.1:probe-port/healthz delay=10s timeout=15s period=10s #success=1 #failure=24
+    Environment:  <none>
+    Mounts:
+      /etc/ca-certificates from etc-ca-certificates (ro)
+      /etc/kubernetes/controller-manager.conf from kubeconfig (ro)
+      /etc/kubernetes/pki from k8s-certs (ro)
+      /etc/ssl/certs from ca-certs (ro)
+      /usr/libexec/kubernetes/kubelet-plugins/volume/exec from flexvolume-dir (rw)
+      /usr/local/share/ca-certificates from usr-local-share-ca-certificates (ro)
+      /usr/share/ca-certificates from usr-share-ca-certificates (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       False 
+  ContainersReady             False 
+  PodScheduled                True 
+Volumes:
+  ca-certs:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/ssl/certs
+    HostPathType:  DirectoryOrCreate
+  etc-ca-certificates:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/ca-certificates
+    HostPathType:  DirectoryOrCreate
+  flexvolume-dir:
+    Type:          HostPath (bare host directory volume)
+    Path:          /usr/libexec/kubernetes/kubelet-plugins/volume/exec
+    HostPathType:  DirectoryOrCreate
+  k8s-certs:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/kubernetes/WRONG-PKI-DIRECTORY
+    HostPathType:  DirectoryOrCreate
+  kubeconfig:
+    Type:          HostPath (bare host directory volume)
+    Path:          /etc/kubernetes/controller-manager.conf
+    HostPathType:  FileOrCreate
+  usr-local-share-ca-certificates:
+    Type:          HostPath (bare host directory volume)
+    Path:          /usr/local/share/ca-certificates
+    HostPathType:  DirectoryOrCreate
+  usr-share-ca-certificates:
+    Type:          HostPath (bare host directory volume)
+    Path:          /usr/share/ca-certificates
+    HostPathType:  DirectoryOrCreate
+QoS Class:         Burstable
+Node-Selectors:    <none>
+Tolerations:       :NoExecute op=Exists
+Events:
+  Type     Reason   Age                  From     Message
+  ----     ------   ----                 ----     -------
+  Normal   Pulled   26s (x5 over 115s)   kubelet  spec.containers{kube-controller-manager}: Container image "registry.k8s.io/kube-controller-manager:v1.35.0" already present on machine and can be accessed by the pod
+  Normal   Created  26s (x5 over 115s)   kubelet  spec.containers{kube-controller-manager}: Container created
+  Normal   Started  26s (x5 over 115s)   kubelet  spec.containers{kube-controller-manager}: Container started
+  Warning  BackOff  15s (x10 over 113s)  kubelet  spec.containers{kube-controller-manager}: Back-off restarting failed container kube-controller-manager in pod kube-controller-manager-controlplane_kube-system(0b51a099e96c05a6fa24d63c74e994fa)
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  
+
+controlplane ~ ➜  cd /etc/kubernetes/
+
+controlplane /etc/kubernetes ➜  ls -ltr
+total 56
+drwxr-xr-x 3 root root 4096 Sep 21 06:23 pki
+-rw------- 1 root root 5636 Sep 21 06:23 admin.conf
+-rw------- 1 root root 5660 Sep 21 06:23 super-admin.conf
+-rw------- 1 root root 5662 Sep 21 06:23 controller-manager.conf
+-rw------- 1 root root 5610 Sep 21 06:23 scheduler.conf
+-rw------- 1 root root 1978 Sep 21 06:23 kubelet.conf
+-rw-r--r-- 1 root root 5861 Sep 21 06:42 control.yaml
+drwxrwxr-x 1 root root 4096 Sep 21 06:50 manifests
+drwxr-xr-x 2 root root 4096 Sep 21 06:50 WRONG-PKI-DIRECTORY
+
+controlplane /etc/kubernetes ➜  cd  manifests/
+
+controlplane /etc/kubernetes/manifests ➜  grep -i "/etc/kubernetes/pki/ca.crt" *.*
+kube-apiserver.yaml:    - --client-ca-file=/etc/kubernetes/pki/ca.crt
+kube-controller-manager.yaml:    - --client-ca-file=/etc/kubernetes/pki/ca.crt
+kube-controller-manager.yaml:    - --cluster-signing-cert-file=/etc/kubernetes/pki/ca.crt
+kube-controller-manager.yaml:    - --root-ca-file=/etc/kubernetes/pki/ca.crt
+
+controlplane /etc/kubernetes/manifests ➜  ls -ltr /etc/kubernetes/
+total 56
+drwxr-xr-x 3 root root 4096 Sep 21 06:23 pki
+-rw------- 1 root root 5636 Sep 21 06:23 admin.conf
+-rw------- 1 root root 5660 Sep 21 06:23 super-admin.conf
+-rw------- 1 root root 5662 Sep 21 06:23 controller-manager.conf
+-rw------- 1 root root 5610 Sep 21 06:23 scheduler.conf
+-rw------- 1 root root 1978 Sep 21 06:23 kubelet.conf
+-rw-r--r-- 1 root root 5861 Sep 21 06:42 control.yaml
+drwxrwxr-x 1 root root 4096 Sep 21 06:50 manifests
+drwxr-xr-x 2 root root 4096 Sep 21 06:50 WRONG-PKI-DIRECTORY
+
+controlplane /etc/kubernetes/manifests ➜  vi kube-controller-manager.yaml 
+
+controlplane /etc/kubernetes/manifests ➜  grep ca.crt *
+etcd.yaml:    - --peer-trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+etcd.yaml:    - --trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+kube-apiserver.yaml:    - --client-ca-file=/etc/kubernetes/pki/ca.crt
+kube-apiserver.yaml:    - --etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt
+kube-apiserver.yaml:    - --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt
+kube-controller-manager.yaml:    - --client-ca-file=/etc/kubernetes/pki/ca.crt
+kube-controller-manager.yaml:    - --cluster-signing-cert-file=/etc/kubernetes/pki/ca.crt
+kube-controller-manager.yaml:    - --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt
+kube-controller-manager.yaml:    - --root-ca-file=/etc/kubernetes/pki/ca.crt
+
+controlplane /etc/kubernetes/manifests ➜  cd $HOME
+
+controlplane ~ ➜  find / -name ca.crt
+/etc/kubernetes/pki/etcd/ca.crt
+/etc/kubernetes/pki/ca.crt
+find: ‘/proc/tty/driver’: Permission denied
+/var/lib/kubelet/pods/f349072d-89b9-4dcc-9b6c-d14e780632c6/volumes/kubernetes.io~projected/kube-api-access-5jvjc/ca.crt
+/var/lib/kubelet/pods/f349072d-89b9-4dcc-9b6c-d14e780632c6/volumes/kubernetes.io~projected/kube-api-access-5jvjc/..2026_09_21_06_23_36.1661587015/ca.crt
+/var/lib/kubelet/pods/ba389f14-f9f3-4b06-afd2-ce8903877a43/volumes/kubernetes.io~projected/kube-api-access-9hsmb/ca.crt
+/var/lib/kubelet/pods/ba389f14-f9f3-4b06-afd2-ce8903877a43/volumes/kubernetes.io~projected/kube-api-access-9hsmb/..2026_09_21_06_37_07.2706943290/ca.crt
+/var/lib/kubelet/pods/57c2816e-b4e4-4e7f-9790-0484888be9cb/volumes/kubernetes.io~projected/kube-api-access-jw7sd/ca.crt
+/var/lib/kubelet/pods/57c2816e-b4e4-4e7f-9790-0484888be9cb/volumes/kubernetes.io~projected/kube-api-access-jw7sd/..2026_09_21_06_23_36.2299817868/ca.crt
+/var/lib/kubelet/pods/730997fa-a6f7-462d-81ba-b645d058d08b/volumes/kubernetes.io~projected/kube-api-access-wg6kb/ca.crt
+/var/lib/kubelet/pods/730997fa-a6f7-462d-81ba-b645d058d08b/volumes/kubernetes.io~projected/kube-api-access-wg6kb/..2026_09_21_06_48_07.3219954827/ca.crt
+/var/lib/kubelet/pods/1c03179a-6288-4a75-99da-5fe205bc0b7f/volumes/kubernetes.io~projected/kube-api-access-n5tvr/ca.crt
+/var/lib/kubelet/pods/1c03179a-6288-4a75-99da-5fe205bc0b7f/volumes/kubernetes.io~projected/kube-api-access-n5tvr/..2026_09_21_06_23_34.1129457886/ca.crt
+/var/lib/kubelet/pods/654b591c-789e-40d2-919f-971df6825f14/volumes/kubernetes.io~projected/kube-api-access-tw75r/ca.crt
+/var/lib/kubelet/pods/654b591c-789e-40d2-919f-971df6825f14/volumes/kubernetes.io~projected/kube-api-access-tw75r/..2026_09_21_06_23_35.174149292/ca.crt
+/run/secrets/kubernetes.io/serviceaccount/ca.crt
+/run/secrets/kubernetes.io/serviceaccount/..2026_09_21_06_22_14.4221120525/ca.crt
+
+controlplane ~ ✖ ls -ltr /etc/kubernetes/
+total 56
+drwxr-xr-x 3 root root 4096 Sep 21 06:23 pki
+-rw------- 1 root root 5636 Sep 21 06:23 admin.conf
+-rw------- 1 root root 5660 Sep 21 06:23 super-admin.conf
+-rw------- 1 root root 5662 Sep 21 06:23 controller-manager.conf
+-rw------- 1 root root 5610 Sep 21 06:23 scheduler.conf
+-rw------- 1 root root 1978 Sep 21 06:23 kubelet.conf
+-rw-r--r-- 1 root root 5861 Sep 21 06:42 control.yaml
+drwxr-xr-x 2 root root 4096 Sep 21 06:50 WRONG-PKI-DIRECTORY
+drwxrwxr-x 1 root root 4096 Sep 21 06:56 manifests
+
+controlplane ~ ➜  cd /etc/kubernetes/manifests/
+
+controlplane /etc/kubernetes/manifests ➜  grep -i "/etc/kubernetes/" *
+etcd.yaml:    - --cert-file=/etc/kubernetes/pki/etcd/server.crt
+etcd.yaml:    - --key-file=/etc/kubernetes/pki/etcd/server.key
+etcd.yaml:    - --peer-cert-file=/etc/kubernetes/pki/etcd/peer.crt
+etcd.yaml:    - --peer-key-file=/etc/kubernetes/pki/etcd/peer.key
+etcd.yaml:    - --peer-trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+etcd.yaml:    - --trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
+etcd.yaml:    - mountPath: /etc/kubernetes/pki/etcd
+etcd.yaml:      path: /etc/kubernetes/pki/etcd
+kube-apiserver.yaml:    - --client-ca-file=/etc/kubernetes/pki/ca.crt
+kube-apiserver.yaml:    - --etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt
+kube-apiserver.yaml:    - --etcd-certfile=/etc/kubernetes/pki/apiserver-etcd-client.crt
+kube-apiserver.yaml:    - --etcd-keyfile=/etc/kubernetes/pki/apiserver-etcd-client.key
+kube-apiserver.yaml:    - --kubelet-client-certificate=/etc/kubernetes/pki/apiserver-kubelet-client.crt
+kube-apiserver.yaml:    - --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key
+kube-apiserver.yaml:    - --proxy-client-cert-file=/etc/kubernetes/pki/front-proxy-client.crt
+kube-apiserver.yaml:    - --proxy-client-key-file=/etc/kubernetes/pki/front-proxy-client.key
+kube-apiserver.yaml:    - --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt
+kube-apiserver.yaml:    - --service-account-key-file=/etc/kubernetes/pki/sa.pub
+kube-apiserver.yaml:    - --service-account-signing-key-file=/etc/kubernetes/pki/sa.key
+kube-apiserver.yaml:    - --tls-cert-file=/etc/kubernetes/pki/apiserver.crt
+kube-apiserver.yaml:    - --tls-private-key-file=/etc/kubernetes/pki/apiserver.key
+kube-apiserver.yaml:    - mountPath: /etc/kubernetes/pki
+kube-apiserver.yaml:      path: /etc/kubernetes/pki
+kube-controller-manager.yaml:    - --authentication-kubeconfig=/etc/kubernetes/controller-manager.conf
+kube-controller-manager.yaml:    - --authorization-kubeconfig=/etc/kubernetes/controller-manager.conf
+kube-controller-manager.yaml:    - --client-ca-file=/etc/kubernetes/pki/ca.crt
+kube-controller-manager.yaml:    - --cluster-signing-cert-file=/etc/kubernetes/pki/ca.crt
+kube-controller-manager.yaml:    - --cluster-signing-key-file=/etc/kubernetes/pki/ca.key
+kube-controller-manager.yaml:    - --kubeconfig=/etc/kubernetes/controller-manager.conf
+kube-controller-manager.yaml:    - --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt
+kube-controller-manager.yaml:    - --root-ca-file=/etc/kubernetes/pki/ca.crt
+kube-controller-manager.yaml:    - --service-account-private-key-file=/etc/kubernetes/pki/sa.key
+kube-controller-manager.yaml:    - mountPath: /etc/kubernetes/pki
+kube-controller-manager.yaml:    - mountPath: /etc/kubernetes/controller-manager.conf
+kube-controller-manager.yaml:      path: /etc/kubernetes/WRONG-PKI-DIRECTORY
+kube-controller-manager.yaml:      path: /etc/kubernetes/controller-manager.conf
+kube-scheduler.yaml:    - --authentication-kubeconfig=/etc/kubernetes/scheduler.conf
+kube-scheduler.yaml:    - --authorization-kubeconfig=/etc/kubernetes/scheduler.conf
+kube-scheduler.yaml:    - --kubeconfig=/etc/kubernetes/scheduler.conf
+kube-scheduler.yaml:    - mountPath: /etc/kubernetes/scheduler.conf
+kube-scheduler.yaml:      path: /etc/kubernetes/scheduler.conf
+
+controlplane /etc/kubernetes/manifests ➜  vi kube-controller-manager.yaml 
+
+controlplane /etc/kubernetes/manifests ➜  
+
+controlplane /etc/kubernetes/manifests ➜  cd $HOME
+
+controlplane ~ ➜  k get po
+NAME                 READY   STATUS    RESTARTS   AGE
+app-5497957c-dsq8v   1/1     Running   0          12m
+app-5497957c-lklgz   1/1     Running   0          26m
+
+controlplane ~ ➜  k get po -n kube-system 
+NAME                                   READY   STATUS    RESTARTS   AGE
+coredns-6f6c7df987-2d49x               1/1     Running   0          37m
+coredns-6f6c7df987-j44qx               1/1     Running   0          37m
+etcd-controlplane                      1/1     Running   0          37m
+kube-apiserver-controlplane            1/1     Running   0          37m
+kube-controller-manager-controlplane   0/1     Running   0          10s
+kube-proxy-rrnlc                       1/1     Running   0          37m
+kube-scheduler-controlplane            1/1     Running   0          23m
+
+controlplane ~ ➜  k get po -n kube-system 
+NAME                                   READY   STATUS    RESTARTS   AGE
+coredns-6f6c7df987-2d49x               1/1     Running   0          37m
+coredns-6f6c7df987-j44qx               1/1     Running   0          37m
+etcd-controlplane                      1/1     Running   0          37m
+kube-apiserver-controlplane            1/1     Running   0          37m
+kube-controller-manager-controlplane   0/1     Running   0          17s
+kube-proxy-rrnlc                       1/1     Running   0          37m
+kube-scheduler-controlplane            1/1     Running   0          23m
+
+controlplane ~ ➜  k get po -n kube-system 
+NAME                                   READY   STATUS    RESTARTS   AGE
+coredns-6f6c7df987-2d49x               1/1     Running   0          37m
+coredns-6f6c7df987-j44qx               1/1     Running   0          37m
+etcd-controlplane                      1/1     Running   0          37m
+kube-apiserver-controlplane            1/1     Running   0          37m
+kube-controller-manager-controlplane   1/1     Running   0          34s
+kube-proxy-rrnlc                       1/1     Running   0          37m
+kube-scheduler-controlplane            1/1     Running   0          23m
